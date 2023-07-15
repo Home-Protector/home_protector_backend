@@ -12,7 +12,7 @@ public class Post extends Timestamped{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = false, length = 50)
     private String title;
 
     @Column(name = "content", nullable = false)
