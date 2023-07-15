@@ -42,30 +42,10 @@ public class PostService {
         MultipartFile file = postRequestDto.getImage();
         String fileName = file.getOriginalFilename();
 
-        // 파일 null check
-        if (file == null || file.isEmpty()){
-            throw new IllegalArgumentException("이미지가 존재하지 않습니다.");
+        // 파일 검증(null, 크기, 확장자)
+        if (!validateFile(file, fileName)){
+            throw new IllegalArgumentException("파일 검증에 실패했습니다.");
         }
-
-        String path = Paths.get(fileName).toString(); // 원본 파일명으로 파일 경로 생성
-        String extension = StringUtils.getFilenameExtension(path); // 확장자명
-
-        // 파일 확장자 null check
-        if (extension == null){
-            throw new IllegalArgumentException("파일의 확장자가 잘못되었습니다");
-        }
-
-        // 파일 확장자 지원 여부 check
-        List<String> fileExtensions = Arrays.asList("jpg", "png", "webp", "heif", "heic", "gif");
-
-        if (!fileExtensions.contains(extension.toLowerCase())){
-            throw new IllegalArgumentException("지원되지 않는 확장자 형식입니다.");
-        }
-
-        // 파일 크기 검증
-        long maxSize = 20 * 1024 * 1024; // 20MB
-        long fileSize = file.getSize();
-        if (fileSize > maxSize) throw new IllegalArgumentException("파일의 크기가 기준보다 초과되었습니다");
 
         uploadFileToS3(file, fileName); // S3에 이미지 저장(파일, 파일명)
         String S3ObjectUrl = amazonS3.getUrl(bucket, fileName).toString(); // 해당 이미지의 URL(bucket 이름, 파일명)
@@ -88,5 +68,37 @@ public class PostService {
         } catch (IOException e){
             throw new RuntimeException("이미지 업로드 중 오류가 발생했습니다.");
         }
+    }
+
+    // 파일 검증 메서드(null check, 파일 확장자, 파일 크기)
+    private boolean validateFile(MultipartFile file, String filename){
+        // 파일 null check
+        if (file == null || file.isEmpty()){
+            throw new IllegalArgumentException("이미지가 존재하지 않습니다.");
+        }
+
+        String path = Paths.get(filename).toString(); // 원본 파일명으로 파일 경로 생성
+        String extension = StringUtils.getFilenameExtension(path); // 확장자명
+
+        // 파일 확장자 null check
+        if (extension == null){
+            throw new IllegalArgumentException("파일의 확장자가 잘못되었습니다");
+        }
+
+        // 파일 확장자 지원 여부 check
+        List<String> fileExtensions = Arrays.asList("jpg", "png", "webp", "heif", "heic", "gif");
+
+        if (!fileExtensions.contains(extension.toLowerCase())){
+            throw new IllegalArgumentException("지원되지 않는 확장자 형식입니다.");
+        }
+
+        // 파일 크기 검증
+        long maxSize = 20 * 1024 * 1024; // 20MB
+        long fileSize = file.getSize();
+
+        if (fileSize > maxSize) {
+            throw new IllegalArgumentException("파일의 크기가 기준보다 초과되었습니다");
+        }
+        return true;
     }
 }
