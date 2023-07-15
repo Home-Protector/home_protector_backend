@@ -1,12 +1,15 @@
 package com.sparta.home_protector.entity;
 
+import com.sparta.home_protector.dto.PostRequestDto;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class Post extends Timestamped{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,4 +32,11 @@ public class Post extends Timestamped{
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
     private List<Comment> commentList;
+
+    public Post(PostRequestDto postRequestDto, User user, String imageUrl) {
+        this.title = postRequestDto.getTitle();
+        this.content = postRequestDto.getContent();
+        this.image = imageUrl;
+        this.user =user;
+    }
 }
