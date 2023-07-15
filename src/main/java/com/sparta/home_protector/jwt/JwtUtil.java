@@ -2,12 +2,16 @@ package com.sparta.home_protector.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Date;
 
 
@@ -24,13 +28,14 @@ public class JwtUtil {
     private String secretKey;
 
     // jwt 생성 메서드
-    public String createToken(Long id , String nickname){
+    public String createToken(Long id , String nickname , String username){
         Date date = new Date(); // 현재 시간
 
         return BEARER_PREFIX +
                 Jwts.builder()
                         .setSubject(String.valueOf(id)) // 토큰(사용자) 식별자 값
                         .claim("nickname" , nickname)
+                        .claim("username" , username)
                         .setExpiration(new Date(date.getTime() + TOKEN_TIME)) // 만료일
                         .setIssuedAt(date) // 발급일
                         .signWith(SignatureAlgorithm.HS256, secretKey) // 암호화 알고리즘, 시크릿 키
@@ -70,5 +75,9 @@ public class JwtUtil {
                 .getBody();
         // Jwt의 구조중 Payload(Body)부분에 토큰에 담긴 정보가 들어있다.
         // 정보의 한 조각을 클레임이라 부르고 key-value의 한 쌍으로 되어있음. 토큰에는 여러개의 클레임들을 넣을 수 있다.
+    }
+
+    public String getTokenFromRequest(HttpServletRequest req) {
+        return req.getHeader(AUTHORIZATION_HEADER);
     }
 }
