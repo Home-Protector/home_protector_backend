@@ -28,14 +28,13 @@ public class JwtUtil {
     private String secretKey;
 
     // jwt 생성 메서드
-    public String createToken(Long id , String nickname , String username){
+    public String createToken(String nickname , String username){
         Date date = new Date(); // 현재 시간
 
         return BEARER_PREFIX +
                 Jwts.builder()
-                        .setSubject(String.valueOf(id)) // 토큰(사용자) 식별자 값
+                        .setSubject(username) // 토큰(사용자) 식별자 값
                         .claim("nickname" , nickname)
-                        .claim("username" , username)
                         .setExpiration(new Date(date.getTime() + TOKEN_TIME)) // 만료일
                         .setIssuedAt(date) // 발급일
                         .signWith(SignatureAlgorithm.HS256, secretKey) // 암호화 알고리즘, 시크릿 키

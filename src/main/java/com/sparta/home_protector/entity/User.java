@@ -24,15 +24,20 @@ public class User extends Timestamped {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    private UserRoleEnum role;
+
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Post> postList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private  List<Comment> commentList = new ArrayList<>();
 
-    public User(String username, String nickname, String password) {
+    public User(String username, String nickname, String password , UserRoleEnum role) {
         this.username = username;
         this.nickname = nickname;
         this.password = password;
+        this.role =role;
     }
 }

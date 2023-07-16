@@ -5,6 +5,7 @@ import com.sparta.home_protector.dto.LoginResponseDto;
 import com.sparta.home_protector.dto.SignupRequestDto;
 import com.sparta.home_protector.dto.SignupResponseDto;
 import com.sparta.home_protector.entity.User;
+import com.sparta.home_protector.entity.UserRoleEnum;
 import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,8 +42,10 @@ public class UserService {
             throw new IllegalArgumentException("중복된 nickname 입니다.");
         }
 
+        UserRoleEnum role = UserRoleEnum.USER;
+
         // 사용자 등록
-        User user = new User(username, nickname, password);
+        User user = new User(username, nickname, password ,role);
         userRepository.save(user);
 
         return  new SignupResponseDto("회원가입 성공");
@@ -60,10 +63,9 @@ public class UserService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
                 throw new IllegalArgumentException("비밀번호가 틀립니다.");
         }
-        Long id = user.getId();
         String nickname = user.getNickname();
         // Jwt 토큰 생성, response에 넣기
-        String token = jwtUtil.createToken(id,nickname,username);
+        String token = jwtUtil.createToken(nickname,username);
         // Jwt 헤더에 저장.
         jwtResponse.addHeader("Authorization",token);
         return new LoginResponseDto("로그인 성공");

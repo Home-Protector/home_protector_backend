@@ -1,6 +1,7 @@
 package com.sparta.home_protector.security;
 
 import com.sparta.home_protector.entity.User;
+import com.sparta.home_protector.entity.UserRoleEnum;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,8 +36,8 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        //무조건 정의해야하는 메서드인데 권한이 필요없어서 일단 이렇게 했습니다.
-        String authority = null;
+        UserRoleEnum role = user.getRole();
+        String authority = role.getAuthority();
         SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority(authority);
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(simpleGrantedAuthority);
