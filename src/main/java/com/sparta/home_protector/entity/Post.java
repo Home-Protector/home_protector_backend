@@ -18,8 +18,8 @@ public class Post extends Timestamped{
     @Column(name = "content", nullable = false)
     private String content;
 
-    @Column(name = "image", nullable = false)
-    private String image;  // 이미지 파일을 서버 또는 외부 스토리지(S3 Bucket)에 업로드하고, 경로를 db에 저장
+//    @Column(name = "image", nullable = false)
+//    private String image;  // 이미지 파일을 서버 또는 외부 스토리지(S3 Bucket)에 업로드하고, 경로를 db에 저장
 
     @Column(name = "viewCount", nullable = false)
     private int viewCount;
