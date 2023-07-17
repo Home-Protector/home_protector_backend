@@ -6,7 +6,7 @@ import lombok.Getter;
 public class SignupResponseDto {
     private String msg;
 
-    public SignupResponseDto( String msg) {
+    public SignupResponseDto(String msg) {
         this.msg = msg;
     }
 }

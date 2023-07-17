@@ -25,14 +25,14 @@ public class JwtUtil {
     private String secretKey;
 
     // jwt 생성 메서드
-    public String createToken(Long id , String nickname , String username){
+    public String createToken(Long id, String nickname, String username) {
         Date date = new Date(); // 현재 시간
 
         return BEARER_PREFIX +
                 Jwts.builder()
                         .setSubject(String.valueOf(id)) // 토큰(사용자) 식별자 값
-                        .claim("nickname" , nickname)
-                        .claim("username" , username)
+                        .claim("nickname", nickname)
+                        .claim("username", username)
                         .setExpiration(new Date(date.getTime() + TOKEN_TIME)) // 만료일
                         .setIssuedAt(date) // 발급일
                         .signWith(SignatureAlgorithm.HS256, secretKey) // 암호화 알고리즘, 시크릿 키
@@ -40,15 +40,15 @@ public class JwtUtil {
     }
 
     // jwt 토큰을 받아올때 - substring
-    public String substringToken(String token){
-        if(StringUtils.hasText(token)&&token.startsWith(BEARER_PREFIX)){ // 토큰이 공백이 아니고 Bearer로 시작할 때
+    public String substringToken(String token) {
+        if (StringUtils.hasText(token) && token.startsWith(BEARER_PREFIX)) { // 토큰이 공백이 아니고 Bearer로 시작할 때
             return token.substring(7);
         }
         throw new NullPointerException("토큰을 찾을 수 없습니다.");
     }
 
     // jwt 검증 메서드
-    public boolean validateToken(String token){
+    public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token); // key로 token 검증
             return true;
@@ -65,7 +65,7 @@ public class JwtUtil {
     }
 
     // 토큰에서 사용자 정보 가져오기
-    public Claims getUserInfo(String token){
+    public Claims getUserInfo(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build().parseClaimsJws(token)

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "comment") //  매핑할 테이블명
 @NoArgsConstructor
-public class Comment extends Timestamped{
+public class Comment extends Timestamped {
 
     @Id // 식별자
     @GeneratedValue(strategy = GenerationType.IDENTITY) // auto_increment 걸어주기

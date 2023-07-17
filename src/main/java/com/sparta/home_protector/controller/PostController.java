@@ -18,6 +18,7 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
     private final JwtUtil jwtUtil;
+
     public PostController(PostService postService, JwtUtil jwtUtil) {
         this.postService = postService;
         this.jwtUtil = jwtUtil;
@@ -25,16 +26,17 @@ public class PostController {
 
     // 게시글 작성 API
     @PostMapping("/post")
-    public ResponseEntity<String> createPost(@RequestPart("title")String title,
-                                             @RequestPart("content")String content,
-                                             @RequestPart("img") MultipartFile multipartFile,
-                                             HttpServletRequest httpServletRequest){
-        PostRequestDto postRequestDto = new PostRequestDto(title, content, multipartFile);
+    public ResponseEntity<String> createPost(@RequestPart("title") String title,
+                                             @RequestPart("content") String content,
+                                             @RequestPart("images") List<MultipartFile> files,
+                                             HttpServletRequest httpServletRequest) {
+
+        PostRequestDto postRequestDto = new PostRequestDto(title, content, files);
 
         // JWT 조회 및 검증
         String token = jwtUtil.substringToken(httpServletRequest.getHeader("Authorization"));
 
-        if (!jwtUtil.validateToken(token)){
+        if (!jwtUtil.validateToken(token)) {
             throw new IllegalArgumentException("토큰 검증에 실패했습니다.");
         }
 
@@ -46,7 +48,7 @@ public class PostController {
 
     // 게시글 조회 API
     @GetMapping("/post")
-    public List<PostResponseDto> getAllPost(){
+    public List<PostResponseDto> getAllPost() {
         return postService.getAllPost();
     }
 }
