@@ -43,7 +43,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {  //무조건 
             Claims info = jwtUtil.getUserInfo(tokenValue);
 
             try {
-                setAuthentication(info.getSubject());
+                setAuthentication(info.get("username",String.class));
             } catch (Exception e) {
                 log.error(e.getMessage());
                 return;
@@ -62,6 +62,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {  //무조건 
     // 인증 객체 생성
     private Authentication createAuthentication(String username) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(userDetails, null, null);
     }
 }
