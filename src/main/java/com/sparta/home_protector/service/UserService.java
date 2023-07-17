@@ -47,7 +47,7 @@ public class UserService {
     }
 
 //    //로그인    security filter에서 하는 방법도 있는데 이게 더 맞는 방법.
-    public LoginResponseDto login(LoginRequestDto requestDto, HttpServletResponse jwtResponse) {
+    public LoginResponseDto login(LoginRequestDto requestDto, HttpServletResponse httpServletResponse) {
         String username = requestDto.getUsername();
         String password = requestDto.getPassword();
 
@@ -63,7 +63,8 @@ public class UserService {
         // Jwt 토큰 생성, response에 넣기
         String token = jwtUtil.createToken(id,nickname,username);
         // Jwt 헤더에 저장.
-        jwtResponse.addHeader("Authorization",token);
+        //jwtResponse.addHeader("Authorization",token);
+        httpServletResponse.setHeader("Authorization", token);
         return new LoginResponseDto("로그인 성공");
     }
 }

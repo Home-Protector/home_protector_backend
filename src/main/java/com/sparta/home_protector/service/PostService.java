@@ -3,6 +3,7 @@ package com.sparta.home_protector.service;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.sparta.home_protector.dto.PostResponseDto;
 import com.sparta.home_protector.dto.PostRequestDto;
 import com.sparta.home_protector.entity.Post;
 import com.sparta.home_protector.entity.User;
@@ -33,6 +34,13 @@ public class PostService {
         this.userRepository = userRepository;
         this.amazonS3 = amazonS3;
         this.bucket = bucket;
+    }
+
+    // 게시글 전체 조회 비즈니스 로직
+    public List<PostResponseDto> getAllPost() {
+        List<PostResponseDto> allPost = postRepository.findAll()
+                .stream().map(PostResponseDto::new).toList();
+        return allPost;
     }
 
     //  게시글 작성 비즈니스 로직
