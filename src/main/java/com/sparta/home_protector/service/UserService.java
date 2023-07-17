@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpHeaders;
 
 import java.util.Optional;
 
@@ -63,8 +64,7 @@ public class UserService {
         // Jwt 토큰 생성, response에 넣기
         String token = jwtUtil.createToken(id,nickname,username);
         // Jwt 헤더에 저장.
-        jwtResponse.addHeader("Authorization",token);
-        jwtResponse.setHeader("Authorization",token);
+        jwtResponse.addHeader("authorization",token);
         return new LoginResponseDto("로그인 성공");
     }
 }
