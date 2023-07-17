@@ -1,4 +1,4 @@
-package com.sparta.home_protector.Config;
+package com.sparta.home_protector.config;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
