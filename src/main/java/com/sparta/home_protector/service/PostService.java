@@ -8,6 +8,7 @@ import com.sparta.home_protector.entity.Post;
 import com.sparta.home_protector.entity.User;
 import com.sparta.home_protector.repository.PostRepository;
 import com.sparta.home_protector.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -17,7 +18,9 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
+@Slf4j(topic = "Post 서비스")
 @Service
 public class PostService {
     private final PostRepository postRepository;
@@ -34,6 +37,10 @@ public class PostService {
 
     //  게시글 작성 비즈니스 로직
     public ResponseEntity<String> createPost(PostRequestDto postRequestDto, Long tokenId) {
+        log.info("서비스 잘 들어오나?????");
+        System.out.println("postRequestDto.getTitle() = " + postRequestDto.getTitle());
+        System.out.println("postRequestDto.getContent() = " + postRequestDto.getContent());
+        System.out.println("postRequestDto.getImage() = " + postRequestDto.getImage());
         // JWT Id로 해당 USER 객체 생성
         User user = userRepository.findById(tokenId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
@@ -47,8 +54,9 @@ public class PostService {
             throw new IllegalArgumentException("파일 검증에 실패했습니다.");
         }
 
-        uploadFileToS3(file, fileName); // S3에 이미지 저장(파일, 파일명)
-        String S3ObjectUrl = amazonS3.getUrl(bucket, fileName).toString(); // 해당 이미지의 URL(bucket 이름, 파일명)
+        // S3에 이미지 저장(파일, 파일명) 후 해당 이미지 파일의 url 반환
+        String S3ObjectUrl = uploadFileToS3(file, fileName);
+
 
         Post post = new Post(postRequestDto, user, S3ObjectUrl);
         postRepository.save(post);
@@ -57,18 +65,39 @@ public class PostService {
     }
 
     // 이미지 파일 업로드 메서드
-    private void uploadFileToS3(MultipartFile file, String filename){
+    private String uploadFileToS3(MultipartFile file, String filename){
         try {
+
+            String extension = StringUtils.getFilenameExtension(Paths.get(filename).toString()); // 확장자명
+            String fileUuid = generateUniqueFilename(extension); // 해당 파일의 고유한 이름
+
             // 업로드할 파일의 메타데이터 생성(파일 크기.byte)
             ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType("image/"+extension);
             metadata.setContentLength(file.getSize());
-
-            PutObjectRequest request = new PutObjectRequest(bucket, filename, file.getInputStream(), metadata);
+            
+            // 요청 객체 생성(버킷명, 파일이름, 스트림, 메타정보)
+            PutObjectRequest request = new PutObjectRequest(bucket, fileUuid, file.getInputStream(), metadata);
+            
+            // S3 버킷에 PUT(등록 요청)
             amazonS3.putObject(request);
+            
+            // 해당 객체의 Url 값을 String으로 저장
+            String uniqueFilename = amazonS3.getUrl(bucket, fileUuid).toString();
+            
+            return uniqueFilename;
         } catch (IOException e){
             throw new RuntimeException("이미지 업로드 중 오류가 발생했습니다.");
         }
     }
+
+    // 업로드한 파일으로 고유 파일명을 생성해주는 메서드(이미지 파일 중복 문제)
+    private String generateUniqueFilename(String extension){
+        String timestamp = String.valueOf(System.currentTimeMillis()); // 업로드 시간
+        String randomUuid = UUID.randomUUID().toString();
+        return timestamp + "_" + randomUuid + "." + extension;
+    }
+
 
     // 파일 검증 메서드(null check, 파일 확장자, 파일 크기)
     private boolean validateFile(MultipartFile file, String filename){
