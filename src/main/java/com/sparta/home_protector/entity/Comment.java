@@ -26,6 +26,12 @@ public class Comment extends Timestamped{
     @ManyToOne
     private Post post;
 
+    public Comment(CommentRequestDto requestDto, Post post, User user) {
+        this.comment = requestDto.getComment();
+        this.user = user;
+        this.post = post;
+    }
+
     public void update(CommentRequestDto requestDto) {
         this.comment = requestDto.getComment();
     }

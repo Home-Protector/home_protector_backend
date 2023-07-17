@@ -1,9 +1,7 @@
 package com.sparta.home_protector.controller;
 
 import com.sparta.home_protector.dto.CommentRequestDto;
-import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.service.CommentService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +15,10 @@ import java.util.Map;
 public class CommentController {
 
     private final CommentService commentService;
-    private final JwtUtil jwtUtil;
 
     // 댓글 작성 API
     @PostMapping()
-    public ResponseEntity<Map<String,String>> createComment(@CookieValue(JwtUtil.AUTHORIZATION_HEADER) String tokenValue,
+    public ResponseEntity<Map<String,String>> createComment(@RequestHeader(name="Authorization") String tokenValue,
                                                             @PathVariable Long postid,
                                                             @RequestBody @Valid CommentRequestDto requestDto,
                                                             HttpServletRequest request) {
@@ -30,19 +27,16 @@ public class CommentController {
 
     // 댓글 수정 API
     @PutMapping("/{commentid}")
-    public ResponseEntity<Map<String,String>> updateComment(@CookieValue(JwtUtil.AUTHORIZATION_HEADER) String tokenValue,
+    public ResponseEntity<Map<String,String>> updateComment(@RequestHeader(name="Authorization") String tokenValue,
                                                             @PathVariable Long commentid,
-                                                            @RequestBody @Valid CommentRequestDto requestDto,
-                                                            HttpServletRequest request) {
-
-        return commentService.updateComment(tokenValue, commentid, requestDto, request);
+                                                            @RequestBody @Valid CommentRequestDto requestDto) {
+        return commentService.updateComment(tokenValue, commentid, requestDto);
     }
 
     // 댓글 삭제 API
     @DeleteMapping("/{commentid}")
-    public ResponseEntity<Map<String,String>> deleteComment(@CookieValue(JwtUtil.AUTHORIZATION_HEADER) String tokenValue,
-                                                            @PathVariable Long commentid,
-                                                            HttpServletRequest request) {
-        return commentService.deleteComment(tokenValue, commentid, request);
+    public ResponseEntity<Map<String,String>> deleteComment(@RequestHeader(name="Authorization") String tokenValue,
+                                                            @PathVariable Long commentid) {
+        return commentService.deleteComment(tokenValue, commentid);
     }
 }

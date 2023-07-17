@@ -6,7 +6,8 @@ import com.sparta.home_protector.entity.Post;
 import com.sparta.home_protector.entity.User;
 import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.repository.CommentRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import com.sparta.home_protector.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -19,20 +20,30 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CommentService{
     private final CommentRepository commentRepositoy;
+    private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final PostService postService;
 
     // 반환할 message 맵핑
     Map<String, String> responseMessage = new HashMap<>();
 
-    public ResponseEntity<Map<String,String>> createComment(String tokenValue, Long postId, CommentRequestDto requestDto, HttpServletRequest request){
+    public ResponseEntity<Map<String,String>> createComment(String tokenValue, Long postId, CommentRequestDto requestDto){
         // 해당 게시글이 DB에 존재하는지 확인
         Post targetPost = postService.findPost(postId);
 
-        // 토큰 검증
-        checkToken(tokenValue);
+        // 토큰 자르기
+        String token = jwtUtil.substringToken(tokenValue);
 
-        User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
+        // 토큰 검증
+        if(!jwtUtil.validateToken(token)) {
+            throw new IllegalArgumentException("Token Error");
+        }
+
+        // 토큰에서 유저 id 가져와서 user 정보 조회
+        Claims info = jwtUtil.getUserInfo(token);
+        User user = userRepository.findById(Long.parseLong(info.getSubject())).orElseThrow(() ->
+                new NullPointerException("Not Found User")
+        );
 
         // requestDto를 포함한 comment 저장에 필요한 값들 담아서 주기
         Comment comment = new Comment(requestDto, targetPost, user);
@@ -47,14 +58,23 @@ public class CommentService{
     }
 
     @Transactional
-    public ResponseEntity<Map<String,String>> updateComment(String tokenValue, Long commentId, CommentRequestDto requestDto, HttpServletRequest request){
+    public ResponseEntity<Map<String,String>> updateComment(String tokenValue, Long commentId, CommentRequestDto requestDto){
         // 댓글 저장유무 확인
         Comment comment = findComment(commentId);
 
-        // 토큰 검증
-        checkToken(tokenValue);
+        // 토큰 자르기
+        String token = jwtUtil.substringToken(tokenValue);
 
-//        User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
+        // 토큰 검증
+        if(!jwtUtil.validateToken(token)) {
+            throw new IllegalArgumentException("Token Error");
+        };
+
+        // 토큰에서 유저 id 가져와서 user 정보 조회
+        Claims info = jwtUtil.getUserInfo(token);
+        User user = userRepository.findById(Long.parseLong(info.getSubject())).orElseThrow(() ->
+                new NullPointerException("Not Found User")
+        );
 
         // 권한 확인
 //      checkAuthority(comment, user);
@@ -68,14 +88,23 @@ public class CommentService{
         return ResponseEntity.ok(responseMessage);
     }
 
-    public ResponseEntity<Map<String,String>> deleteComment(String tokenValue, Long commentId, HttpServletRequest request) {
+    public ResponseEntity<Map<String,String>> deleteComment(String tokenValue, Long commentId) {
         // 댓글 저장유무 확인
         Comment comment = findComment(commentId);
 
-        // 토큰 검증
-        checkToken(tokenValue);
+        // 토큰 자르기
+        String token = jwtUtil.substringToken(tokenValue);
 
-//        User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
+        // 토큰 검증
+        if(!jwtUtil.validateToken(token)) {
+            throw new IllegalArgumentException("Token Error");
+        }
+
+        // 토큰에서 유저 id 가져와서 user 정보 조회
+        Claims info = jwtUtil.getUserInfo(token);
+        User user = userRepository.findById(Long.parseLong(info.getSubject())).orElseThrow(() ->
+                new NullPointerException("Not Found User")
+        );
 
         // 권한 확인
 //        checkAuthority(comment, user);
@@ -92,17 +121,6 @@ public class CommentService{
         return commentRepositoy.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("존재하지 않는 댓글 입니다.")
         );
-    }
-
-    // 토큰 추출 및 검증 메서드
-    private void checkToken(String tokenValue){
-        // Read User Token
-        String token = jwtUtil.substringToken(tokenValue);
-
-        // 토큰 검증
-        if(!jwtUtil.validateToken(token)) {
-            throw new IllegalArgumentException("Token Error");
-        }
     }
 
     // 추후 관리자 권한 서비스 추가시 이용
