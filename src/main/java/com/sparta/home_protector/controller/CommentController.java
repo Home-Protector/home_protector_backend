@@ -1,7 +1,6 @@
 package com.sparta.home_protector.controller;
 
 import com.sparta.home_protector.dto.CommentRequestDto;
-import com.sparta.home_protector.entity.User;
 import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.service.CommentService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,9 +25,7 @@ public class CommentController {
                                                             @PathVariable Long postid,
                                                             @RequestBody @Valid CommentRequestDto requestDto,
                                                             HttpServletRequest request) {
-        User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
-
-        return commentService.createComment(tokenValue, postid,requestDto,user);
+        return commentService.createComment(tokenValue, postid,requestDto,request);
     }
 
     // 댓글 수정 API
@@ -37,9 +34,8 @@ public class CommentController {
                                                             @PathVariable Long commentid,
                                                             @RequestBody @Valid CommentRequestDto requestDto,
                                                             HttpServletRequest request) {
-        User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
 
-        return commentService.updateComment(tokenValue, commentid, requestDto, user);
+        return commentService.updateComment(tokenValue, commentid, requestDto, request);
     }
 
     // 댓글 삭제 API
@@ -47,8 +43,6 @@ public class CommentController {
     public ResponseEntity<Map<String,String>> deleteComment(@CookieValue(JwtUtil.AUTHORIZATION_HEADER) String tokenValue,
                                                             @PathVariable Long commentid,
                                                             HttpServletRequest request) {
-        User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
-
-        return commentService.deleteComment(tokenValue, commentid, user);
+        return commentService.deleteComment(tokenValue, commentid, request);
     }
 }

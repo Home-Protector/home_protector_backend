@@ -6,6 +6,7 @@ import com.sparta.home_protector.entity.Post;
 import com.sparta.home_protector.entity.User;
 import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.repository.CommentRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,12 +25,14 @@ public class CommentService{
     // 반환할 message 맵핑
     Map<String, String> responseMessage = new HashMap<>();
 
-    public ResponseEntity<Map<String,String>> createComment(String tokenValue, Long postId, CommentRequestDto requestDto, User user){
+    public ResponseEntity<Map<String,String>> createComment(String tokenValue, Long postId, CommentRequestDto requestDto, HttpServletRequest request){
         // 해당 게시글이 DB에 존재하는지 확인
         Post targetPost = postService.findPost(postId);
 
         // 토큰 검증
         checkToken(tokenValue);
+
+        User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
 
         // requestDto를 포함한 comment 저장에 필요한 값들 담아서 주기
         Comment comment = new Comment(requestDto, targetPost, user);
@@ -44,12 +47,14 @@ public class CommentService{
     }
 
     @Transactional
-    public ResponseEntity<Map<String,String>> updateComment(String tokenValue, Long commentId, CommentRequestDto requestDto, User user){
+    public ResponseEntity<Map<String,String>> updateComment(String tokenValue, Long commentId, CommentRequestDto requestDto, HttpServletRequest request){
         // 댓글 저장유무 확인
         Comment comment = findComment(commentId);
 
         // 토큰 검증
         checkToken(tokenValue);
+
+//        User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
 
         // 권한 확인
 //      checkAuthority(comment, user);
@@ -63,12 +68,14 @@ public class CommentService{
         return ResponseEntity.ok(responseMessage);
     }
 
-    public ResponseEntity<Map<String,String>> deleteComment(String tokenValue, Long commentId, User user) {
+    public ResponseEntity<Map<String,String>> deleteComment(String tokenValue, Long commentId, HttpServletRequest request) {
         // 댓글 저장유무 확인
         Comment comment = findComment(commentId);
 
         // 토큰 검증
         checkToken(tokenValue);
+
+//        User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
 
         // 권한 확인
 //        checkAuthority(comment, user);
