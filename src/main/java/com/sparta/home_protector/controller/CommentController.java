@@ -20,33 +20,35 @@ public class CommentController {
     private final CommentService commentService;
     private final JwtUtil jwtUtil;
 
-
     // 댓글 작성 API
     @PostMapping()
-    public ResponseEntity<Map<String,String>> createComment(@PathVariable Long postid,
+    public ResponseEntity<Map<String,String>> createComment(@CookieValue(JwtUtil.AUTHORIZATION_HEADER) String tokenValue,
+                                                            @PathVariable Long postid,
                                                             @RequestBody @Valid CommentRequestDto requestDto,
                                                             HttpServletRequest request) {
         User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
 
-        return commentService.createComment(postid,requestDto,user);
+        return commentService.createComment(tokenValue, postid,requestDto,user);
     }
 
     // 댓글 수정 API
     @PutMapping("/{commentid}")
-    public ResponseEntity<Map<String,String>> updateComment(@PathVariable Long commentid,
+    public ResponseEntity<Map<String,String>> updateComment(@CookieValue(JwtUtil.AUTHORIZATION_HEADER) String tokenValue,
+                                                            @PathVariable Long commentid,
                                                             @RequestBody @Valid CommentRequestDto requestDto,
                                                             HttpServletRequest request) {
         User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
 
-        return commentService.updateComment(commentid, requestDto, user);
+        return commentService.updateComment(tokenValue, commentid, requestDto, user);
     }
-    // HttpServletRequest
+
     // 댓글 삭제 API
     @DeleteMapping("/{commentid}")
-    public ResponseEntity<Map<String,String>> deleteComment(@PathVariable Long commentid,
+    public ResponseEntity<Map<String,String>> deleteComment(@CookieValue(JwtUtil.AUTHORIZATION_HEADER) String tokenValue,
+                                                            @PathVariable Long commentid,
                                                             HttpServletRequest request) {
         User user = (User) jwtUtil.getUserInfo(String.valueOf(request));
 
-        return commentService.deleteComment(commentid, user);
+        return commentService.deleteComment(tokenValue, commentid, user);
     }
 }
