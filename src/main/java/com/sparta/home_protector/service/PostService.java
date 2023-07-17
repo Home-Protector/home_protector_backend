@@ -37,10 +37,6 @@ public class PostService {
 
     //  게시글 작성 비즈니스 로직
     public ResponseEntity<String> createPost(PostRequestDto postRequestDto, Long tokenId) {
-        log.info("서비스 잘 들어오나?????");
-        System.out.println("postRequestDto.getTitle() = " + postRequestDto.getTitle());
-        System.out.println("postRequestDto.getContent() = " + postRequestDto.getContent());
-        System.out.println("postRequestDto.getImage() = " + postRequestDto.getImage());
         // JWT Id로 해당 USER 객체 생성
         User user = userRepository.findById(tokenId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
@@ -57,7 +53,7 @@ public class PostService {
         // S3에 이미지 저장(파일, 파일명) 후 해당 이미지 파일의 url 반환
         String S3ObjectUrl = uploadFileToS3(file, fileName);
 
-
+        // Entity 객체 생성 후 DB에 저장
         Post post = new Post(postRequestDto, user, S3ObjectUrl);
         postRepository.save(post);
 
@@ -94,7 +90,7 @@ public class PostService {
     // 업로드한 파일으로 고유 파일명을 생성해주는 메서드(이미지 파일 중복 문제)
     private String generateUniqueFilename(String extension){
         String timestamp = String.valueOf(System.currentTimeMillis()); // 업로드 시간
-        String randomUuid = UUID.randomUUID().toString();
+        String randomUuid = UUID.randomUUID().toString(); // 랜덤한 고유 String 생성
         return timestamp + "_" + randomUuid + "." + extension;
     }
 
