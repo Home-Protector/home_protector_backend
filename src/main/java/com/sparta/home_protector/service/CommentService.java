@@ -31,22 +31,10 @@ public class CommentService{
         // 해당 게시글이 DB에 존재하는지 확인
         Post targetPost = postService.findPost(postId);
 
-        // 토큰 자르기
-        String token = jwtUtil.substringToken(tokenValue);
-
-        // 토큰 검증
-        if(!jwtUtil.validateToken(token)) {
-            throw new IllegalArgumentException("Token Error");
-        }
-
-        // 토큰에서 유저 id 가져와서 user 정보 조회
-        Claims info = jwtUtil.getUserInfo(token);
-        User user = userRepository.findById(Long.parseLong(info.getSubject())).orElseThrow(() ->
-                new NullPointerException("Not Found User")
-        );
+        User currentUser = checkTokenFindUser(tokenValue);
 
         // requestDto를 포함한 comment 저장에 필요한 값들 담아서 주기
-        Comment comment = new Comment(requestDto, targetPost, user);
+        Comment comment = new Comment(requestDto, targetPost, currentUser);
 
         // DB 저장 넘겨주기
         Comment saveComment = commentRepositoy.save(comment);
@@ -62,22 +50,10 @@ public class CommentService{
         // 댓글 저장유무 확인
         Comment comment = findComment(commentId);
 
-        // 토큰 자르기
-        String token = jwtUtil.substringToken(tokenValue);
-
-        // 토큰 검증
-        if(!jwtUtil.validateToken(token)) {
-            throw new IllegalArgumentException("Token Error");
-        };
-
-        // 토큰에서 유저 id 가져와서 user 정보 조회
-        Claims info = jwtUtil.getUserInfo(token);
-        User user = userRepository.findById(Long.parseLong(info.getSubject())).orElseThrow(() ->
-                new NullPointerException("Not Found User")
-        );
+        User currentUser = checkTokenFindUser(tokenValue);
 
         // 권한 확인
-//      checkAuthority(comment, user);
+//      checkAuthority(comment, currentUser);
 
         // 수정
         comment.update(requestDto);
@@ -92,22 +68,10 @@ public class CommentService{
         // 댓글 저장유무 확인
         Comment comment = findComment(commentId);
 
-        // 토큰 자르기
-        String token = jwtUtil.substringToken(tokenValue);
-
-        // 토큰 검증
-        if(!jwtUtil.validateToken(token)) {
-            throw new IllegalArgumentException("Token Error");
-        }
-
-        // 토큰에서 유저 id 가져와서 user 정보 조회
-        Claims info = jwtUtil.getUserInfo(token);
-        User user = userRepository.findById(Long.parseLong(info.getSubject())).orElseThrow(() ->
-                new NullPointerException("Not Found User")
-        );
+        User currentUser = checkTokenFindUser(tokenValue);
 
         // 권한 확인
-//        checkAuthority(comment, user);
+//        checkAuthority(comment, currentUser);
 
         // 삭제
         commentRepositoy.delete(comment);
@@ -121,6 +85,26 @@ public class CommentService{
         return commentRepositoy.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("존재하지 않는 댓글 입니다.")
         );
+    }
+
+    // 토큰 유효성 검증 후 유저 찾아서 반환
+    private User checkTokenFindUser(String tokenValue){
+        // 토큰 자르기
+        String token = jwtUtil.substringToken(tokenValue);
+
+        // 토큰 검증
+        if(!jwtUtil.validateToken(token)) {
+            throw new IllegalArgumentException("Token Error");
+        }
+
+        // 토큰에서 유저 id 가져와서 user 정보 조회
+        Claims info = jwtUtil.getUserInfo(token);
+
+        User user = userRepository.findById(Long.parseLong(info.getSubject())).orElseThrow(() ->
+                new NullPointerException("Not Found User")
+        );
+
+        return user;
     }
 
     // 추후 관리자 권한 서비스 추가시 이용
