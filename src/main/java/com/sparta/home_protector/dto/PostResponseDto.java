@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Getter
@@ -16,9 +17,10 @@ public class PostResponseDto {
     private String content;
     private List<String> images;
     private int viewCount;
-    private List<Comment> comments;
+    private Integer countLikes;
+    private List<CommentResponseDto> commentList;
     private LocalDateTime createdAt;
-    private LocalDateTime updateadAt;
+    private LocalDateTime updatedAt;
 
     public PostResponseDto(Post post) {
         this.id = post.getId();
@@ -27,8 +29,12 @@ public class PostResponseDto {
         this.content = post.getContent();
         this.images = new ArrayList<>(post.getImages().values());
         this.viewCount = post.getViewCount();
-        this.comments = post.getCommentList();
+        this.countLikes = post.getPostLikeList().size();
+        this.commentList = post.getCommentList().stream()
+                .map(CommentResponseDto::new)
+                .sorted(Comparator.comparing(CommentResponseDto::getUpdatedAt).reversed())
+                .toList();
         this.createdAt = post.getCreatedAt();
-        this.updateadAt = post.getUpdatedAt();
+        this.updatedAt = post.getUpdatedAt();
     }
 }

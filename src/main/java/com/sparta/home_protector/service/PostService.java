@@ -7,7 +7,9 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.sparta.home_protector.dto.PostRequestDto;
 import com.sparta.home_protector.dto.PostResponseDto;
 import com.sparta.home_protector.entity.Post;
+import com.sparta.home_protector.entity.PostLike;
 import com.sparta.home_protector.entity.User;
+import com.sparta.home_protector.repository.PostLikeRepository;
 import com.sparta.home_protector.repository.PostRepository;
 import com.sparta.home_protector.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -26,12 +28,14 @@ import java.util.*;
 public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final PostLikeRepository postLikeRepository;
     private final AmazonS3 amazonS3;
     private final String bucket;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository, AmazonS3 amazonS3, String bucket) {
+    public PostService(PostRepository postRepository, UserRepository userRepository, PostLikeRepository postLikeRepository, AmazonS3 amazonS3, String bucket) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.postLikeRepository = postLikeRepository;
         this.amazonS3 = amazonS3;
         this.bucket = bucket;
     }
@@ -216,5 +220,26 @@ public class PostService {
             }
         });
         return true;
+    }
+
+
+    Map<String, String> responseMessage = new HashMap<>();
+    @Transactional
+    public ResponseEntity<Map<String,String>> likePost(Long postId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+        PostLike postLike = postLikeRepository.findByPostAndUser(post, user).orElse(null);
+        if(postLike==null){
+            PostLike newPostLike = new PostLike(user,post);
+            postLikeRepository.save(newPostLike);
+            responseMessage.put("msg","좋아요 성공!");
+            return ResponseEntity.ok(responseMessage);
+        }else{
+            postLikeRepository.delete(postLike);
+            responseMessage.put("msg","좋아요 취소!");
+            return ResponseEntity.ok(responseMessage);
+        }
     }
 }
