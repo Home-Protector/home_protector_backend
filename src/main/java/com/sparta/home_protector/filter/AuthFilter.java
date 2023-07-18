@@ -28,7 +28,10 @@ public class AuthFilter implements Filter {
         // 회원가입, 로그인 관련 API, boards에서의 get 요청은 인증 필요없이 진행
         if (StringUtils.hasText(url) &&
                 (url.startsWith("/api/user") ||
-                        (url.startsWith("/api/post") && ((HttpServletRequest) request).getMethod().equals("GET")) )) {
+                        (url.startsWith("/api/post") && ((HttpServletRequest) request).getMethod().equals("GET"))
+                        || (url.startsWith("/login")) || (url.startsWith("/signup"))
+                )
+        ) {
             log.info("인증처리 하지 않는 url : " + url);
             chain.doFilter(request, response); // 다음 Filter 로 이동
         } else {
