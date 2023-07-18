@@ -1,14 +1,12 @@
 package com.sparta.home_protector.controller;
 
-import com.sparta.home_protector.dto.PostResponseDto;
 import com.sparta.home_protector.dto.PostRequestDto;
+import com.sparta.home_protector.dto.PostResponseDto;
 import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -79,6 +77,17 @@ public class PostController {
         return postService.deletePost(postId, tokenId);
     }
 
+    // 게시글 좋아요 API
+    @PutMapping("/post/{postId}/like")
+    public ResponseEntity<Map<String, String>> likeBoard(@PathVariable Long postId,
+                                                         HttpServletRequest httpServletRequest) {
+
+        // JWT 검증 및 요청한 UserId 반환
+        Long tokenId = validateTokenAndGetUserId(httpServletRequest);
+
+        return postService.likePost(postId, tokenId);
+    }
+
     // JWT 검증 및 사용자 정보(UserId) 반환 메서드
     private Long validateTokenAndGetUserId(HttpServletRequest httpServletRequest) {
         // JWT 토큰 조회 및 가공
@@ -93,18 +102,5 @@ public class PostController {
         Long tokenId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
 
         return tokenId;
-    }
-
-
-    @PutMapping("/post/{postId}/like")
-    public ResponseEntity<Map<String,String>> likeBoard(@PathVariable Long postId,
-                                                        HttpServletRequest request) {
-
-        String tokenValue = jwtUtil.getTokenFromRequest(request);
-        String token = jwtUtil.substringToken(tokenValue);
-        // 요청한 사용자 확인(Id)
-        Long userId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
-
-        return postService.likePost(postId, userId);
     }
 }
