@@ -2,11 +2,11 @@ package com.sparta.home_protector.dto;
 
 import com.sparta.home_protector.entity.Comment;
 import com.sparta.home_protector.entity.Post;
-import com.sparta.home_protector.entity.Timestamped;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 public class PostResponseDto {

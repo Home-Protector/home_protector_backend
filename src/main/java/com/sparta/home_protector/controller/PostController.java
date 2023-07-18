@@ -1,7 +1,7 @@
 package com.sparta.home_protector.controller;
 
-import com.sparta.home_protector.dto.PostResponseDto;
 import com.sparta.home_protector.dto.PostRequestDto;
+import com.sparta.home_protector.dto.PostResponseDto;
 import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,7 +54,7 @@ public class PostController {
 
     // 게시글 상세 조회 API
     @GetMapping("/post/{postId}")
-    public PostResponseDto getPostDetail(@PathVariable Long postId){
+    public PostResponseDto getPostDetail(@PathVariable Long postId) {
         return postService.getPostDetail(postId);
     }
 
@@ -84,7 +84,7 @@ public class PostController {
 
     // 게시글 삭제 API
     @DeleteMapping("/post/{postId}")
-    public ResponseEntity<String> deletePost(@PathVariable Long postId, HttpServletRequest httpServletRequest){
+    public ResponseEntity<String> deletePost(@PathVariable Long postId, HttpServletRequest httpServletRequest) {
         // JWT 토큰 조회 및 가공
         String token = jwtUtil.substringToken(httpServletRequest.getHeader("Authorization"));
 

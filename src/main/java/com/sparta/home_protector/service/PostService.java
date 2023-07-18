@@ -87,17 +87,17 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
 
         // 게시글 수정 권한 확인
-        if (!user.getUsername().equals(post.getUser().getUsername())){
+        if (!user.getUsername().equals(post.getUser().getUsername())) {
             throw new IllegalArgumentException("게시글을 수정할 권한이 없습니다!");
         }
 
         // 이미지 파일이 있을 경우만 S3 객체 수정 로직 수행
-        if (postRequestDto.getImages() != null && !postRequestDto.getImages().isEmpty()){
+        if (postRequestDto.getImages() != null && !postRequestDto.getImages().isEmpty()) {
             // 클라이언트가 전송한 이미지 파일
             List<MultipartFile> files = postRequestDto.getImages();
 
             // 파일 검증(null, 크기, 확장자)
-            if (!validateFile(files)){
+            if (!validateFile(files)) {
                 throw new IllegalArgumentException("파일 검증에 실패했습니다.");
             }
 
@@ -122,7 +122,7 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
 
-        if (!user.getUsername().equals(post.getUser().getUsername())){
+        if (!user.getUsername().equals(post.getUser().getUsername())) {
             throw new IllegalArgumentException("게시글을 삭제할 권한이 없습니다!");
         }
 
@@ -164,9 +164,9 @@ public class PostService {
     }
 
     // 이미지 파일 수정(S3) 메서드
-    private Map<String, String> updateFileToS3(Set<String> originKeys, List<MultipartFile> files){
+    private Map<String, String> updateFileToS3(Set<String> originKeys, List<MultipartFile> files) {
         // 기존 저장해둔 S3 객체 삭제
-        for (String key : originKeys){
+        for (String key : originKeys) {
             DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucket, key);
             amazonS3.deleteObject(deleteObjectRequest);
         }
