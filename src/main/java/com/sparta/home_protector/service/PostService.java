@@ -12,6 +12,7 @@ import com.sparta.home_protector.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -44,13 +45,20 @@ public class PostService {
         return allPost;
     }
 
+    // 게시글 상세 조회 비즈니스 로직
+    public PostResponseDto getPostDetail(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+        return new PostResponseDto(post);
+    }
+
     //  게시글 작성 비즈니스 로직
     public ResponseEntity<String> createPost(PostRequestDto postRequestDto, Long tokenId) {
         // JWT Id로 해당 USER 객체 생성
         User user = userRepository.findById(tokenId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        // 클라이언트가 전송한 파일
+        // 클라이언트가 전송한 이미지 파일
         List<MultipartFile> files = postRequestDto.getImages();
 
         // 파일 검증(null, 크기, 확장자)
@@ -67,6 +75,8 @@ public class PostService {
 
         return ResponseEntity.ok("게시글 등록 완료!");
     }
+
+
 
     // 이미지 파일 업로드 메서드
     private List<String> uploadFileToS3(List<MultipartFile> files) {

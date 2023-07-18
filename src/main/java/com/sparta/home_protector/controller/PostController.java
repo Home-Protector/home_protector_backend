@@ -40,7 +40,7 @@ public class PostController {
             throw new IllegalArgumentException("토큰 검증에 실패했습니다.");
         }
 
-        // 요청한 사용자 확인(Id)
+        // 요청한 사용자 정보(Id)
         Long tokenId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
 
         return postService.createPost(postRequestDto, tokenId);
@@ -50,5 +50,11 @@ public class PostController {
     @GetMapping("/post")
     public List<PostResponseDto> getAllPost() {
         return postService.getAllPost();
+    }
+
+    // 게시글 상세 조회 API
+    @GetMapping("/post/{postId}")
+    public PostResponseDto getPostDetail(@PathVariable Long postId){
+        return postService.getPostDetail(postId);
     }
 }
