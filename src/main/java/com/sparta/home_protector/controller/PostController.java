@@ -30,18 +30,11 @@ public class PostController {
                                              @RequestPart("content") String content,
                                              @RequestPart("images") List<MultipartFile> files,
                                              HttpServletRequest httpServletRequest) {
+        // JWT 검증 및 요청한 UserId 반환
+        Long tokenId = validateTokenAndGetUserId(httpServletRequest);
 
+        // Request Dto 객체 생성
         PostRequestDto postRequestDto = new PostRequestDto(title, content, files);
-
-        // JWT 조회 및 검증
-        String token = jwtUtil.substringToken(httpServletRequest.getHeader("Authorization"));
-
-        if (!jwtUtil.validateToken(token)) {
-            throw new IllegalArgumentException("토큰 검증에 실패했습니다.");
-        }
-
-        // 요청한 사용자 정보(Id)
-        Long tokenId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
 
         return postService.createPost(postRequestDto, tokenId);
     }
@@ -65,16 +58,8 @@ public class PostController {
                                              @RequestPart("content") String content,
                                              @RequestPart(value = "images", required = false) List<MultipartFile> files,
                                              HttpServletRequest httpServletRequest) {
-        // JWT 토큰 조회 및 가공
-        String token = jwtUtil.substringToken(httpServletRequest.getHeader("Authorization"));
-
-        // JWT 토큰 검증
-        if (!jwtUtil.validateToken(token)) {
-            throw new IllegalArgumentException("토큰 검증에 실패했습니다.");
-        }
-
-        // 요청한 사용자 정보(Id)
-        Long tokenId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
+        // JWT 검증 및 요청한 UserId 반환
+        Long tokenId = validateTokenAndGetUserId(httpServletRequest);
 
         // Request Dto 생성
         PostRequestDto postRequestDto = new PostRequestDto(title, content, files);
@@ -85,6 +70,14 @@ public class PostController {
     // 게시글 삭제 API
     @DeleteMapping("/post/{postId}")
     public ResponseEntity<String> deletePost(@PathVariable Long postId, HttpServletRequest httpServletRequest) {
+        // JWT 검증 및 요청한 UserId 반환
+        Long tokenId = validateTokenAndGetUserId(httpServletRequest);
+
+        return postService.deletePost(postId, tokenId);
+    }
+
+    // JWT 검증 및 사용자 정보(UserId) 반환 메서드
+    private Long validateTokenAndGetUserId(HttpServletRequest httpServletRequest) {
         // JWT 토큰 조회 및 가공
         String token = jwtUtil.substringToken(httpServletRequest.getHeader("Authorization"));
 
@@ -96,6 +89,6 @@ public class PostController {
         // 요청한 사용자 정보(Id)
         Long tokenId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
 
-        return postService.deletePost(postId, tokenId);
+        return tokenId;
     }
 }
