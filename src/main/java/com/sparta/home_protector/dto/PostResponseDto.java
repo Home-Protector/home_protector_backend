@@ -13,6 +13,7 @@ public class PostResponseDto {
     private String content;
     private List<String> images;
     private int viewCount;
+    private Integer countLikes;
 
     public PostResponseDto(Post post) {
         this.id = post.getId();
@@ -21,5 +22,6 @@ public class PostResponseDto {
         this.content = post.getContent();
         this.images = post.getImages();
         this.viewCount = post.getViewCount();
+        this.countLikes = post.getPostLikeList().size();
     }
 }
