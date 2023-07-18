@@ -4,7 +4,7 @@ import com.sparta.home_protector.entity.Comment;
 import com.sparta.home_protector.entity.Post;
 import lombok.Getter;
 
-import java.util.List;
+import java.util.*;
 
 @Getter
 public class PostResponseDto {
@@ -21,7 +21,7 @@ public class PostResponseDto {
         this.nickname = post.getUser().getNickname();
         this.title = post.getTitle();
         this.content = post.getContent();
-        this.images = post.getImages();
+        this.images = new ArrayList<>(post.getImages().values());
         this.viewCount = post.getViewCount();
         this.comments = post.getCommentList();
     }

@@ -57,4 +57,27 @@ public class PostController {
     public PostResponseDto getPostDetail(@PathVariable Long postId){
         return postService.getPostDetail(postId);
     }
+
+    // 게시글 수정 API
+//    @PutMapping("/post/{postId}")
+//    public ResponseEntity<String> updatePost(@PathVariable Long postId,
+//                                             @RequestPart("title") String title,
+//                                             @RequestPart("content") String content,
+//                                             @RequestPart("images") List<MultipartFile> files,
+//                                             HttpServletRequest httpServletRequest) {
+//
+//        PostRequestDto postRequestDto = new PostRequestDto(title, content, files);
+//
+//        String token = jwtUtil.substringToken(httpServletRequest.getHeader("Authorization"));
+//
+//        // JWT 조회 및 검증
+//        if (!jwtUtil.validateToken(token)) {
+//            throw new IllegalArgumentException("토큰 검증에 실패했습니다.");
+//        }
+//
+//        // 요청한 사용자 정보(Id)
+//        Long tokenId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
+//
+//        return postService.updatePost(postRequestDto, postId, tokenId);
+//    }
 }
