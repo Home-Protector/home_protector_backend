@@ -5,11 +5,11 @@ import lombok.Getter;
 
 @Getter
 public class SignupRequestDto {
-    @Pattern(regexp = "^[a-z0-9]{4,10}$",
+    @Pattern(regexp = "^[A-Za-z0-9]{4,10}$",
             message = "username은 최소 4자 이상, 10자 이하이며 알파벳 소문자(a~z), 숫자(0~9)만 가능합니다.")
     private String username;
 
-    @Pattern(regexp = "^[a-z0-9]{4,10}$",
+    @Pattern(regexp = "^[가-힣A-Za-z0-9]{4,10}$",
             message = "nickname은 최소 4자 이상, 10자 이하이며 알파벳 소문자(a~z), 숫자(0~9)만 가능합니다.")
     private String nickname;
 
