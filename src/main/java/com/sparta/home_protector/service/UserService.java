@@ -64,7 +64,7 @@ public class UserService {
         // Jwt 토큰 생성, response에 넣기
         String token = jwtUtil.createToken(id,nickname,username);
         // Jwt 헤더에 저장.
-        jwtResponse.addHeader("authorization",token);
+        jwtResponse.addHeader("Authorization",token);
         return new LoginResponseDto("로그인 성공");
     }
 }
