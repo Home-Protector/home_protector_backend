@@ -6,36 +6,44 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.sparta.home_protector.dto.PostRequestDto;
 import com.sparta.home_protector.dto.PostResponseDto;
 import com.sparta.home_protector.entity.Post;
+import com.sparta.home_protector.entity.PostLike;
 import com.sparta.home_protector.entity.User;
+import com.sparta.home_protector.repository.PostLikeRepository;
 import com.sparta.home_protector.repository.PostRepository;
 import com.sparta.home_protector.repository.UserRepository;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j(topic = "Post 서비스")
 @Service
+@RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final PostLikeRepository postLikeRepository;
     private final AmazonS3 amazonS3;
     private final String bucket;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository, AmazonS3 amazonS3, String bucket) {
-        this.postRepository = postRepository;
-        this.userRepository = userRepository;
-        this.amazonS3 = amazonS3;
-        this.bucket = bucket;
-    }
+//    public PostService(PostRepository postRepository, UserRepository userRepository, AmazonS3 amazonS3, String bucket) {
+//        this.postRepository = postRepository;
+//        this.userRepository = userRepository;
+//        this.amazonS3 = amazonS3;
+//        this.bucket = bucket;
+//    }
+// 반환할 message 맵핑
+
 
     // 게시글 전체 조회 비즈니스 로직
     public List<PostResponseDto> getAllPost() {
@@ -140,5 +148,26 @@ public class PostService {
             }
         });
         return true;
+    }
+
+
+    Map<String, String> responseMessage = new HashMap<>();
+    @Transactional
+    public ResponseEntity<Map<String,String>> likePost(Long postId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+        PostLike postLike = postLikeRepository.findByPostAndUser(post, user).orElse(null);
+        if(postLike==null){
+            PostLike newPostLike = new PostLike(user,post);
+            postLikeRepository.save(newPostLike);
+            responseMessage.put("msg","좋아요 성공!");
+            return ResponseEntity.ok(responseMessage);
+        }else{
+            postLikeRepository.delete(postLike);
+            responseMessage.put("msg","좋아요 취소!");
+            return ResponseEntity.ok(responseMessage);
+        }
     }
 }

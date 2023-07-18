@@ -6,11 +6,14 @@ import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j(topic = "Post 컨트롤러")
 @RestController
@@ -50,5 +53,17 @@ public class PostController {
     @GetMapping("/post")
     public List<PostResponseDto> getAllPost() {
         return postService.getAllPost();
+    }
+
+
+    @PutMapping("/post/{postId}/like")
+    public ResponseEntity<Map<String,String>> likeBoard(@PathVariable Long postId,
+                                                        HttpServletRequest request) {
+
+        String token = jwtUtil.getTokenFromRequest(request);
+        // 요청한 사용자 확인(Id)
+        Long userId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
+
+        return postService.likePost(postId, userId);
     }
 }
