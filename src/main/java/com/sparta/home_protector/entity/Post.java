@@ -41,4 +41,19 @@ public class Post extends Timestamped {
         this.images = images;
         this.user = user;
     }
+
+    // CASE1 : 파일 첨부하여 수정하는
+    public void update(PostRequestDto postRequestDto, User user, Map<String, String> modiefiedUrl) {
+        this.title = postRequestDto.getTitle();
+        this.content = postRequestDto.getContent();
+        this.images = modiefiedUrl;
+        this.user = user;
+    }
+
+    // CASE2 : 파일 첨부 없이 수정하는 경우
+    public void update(PostRequestDto postRequestDto, User user) {
+        this.title = postRequestDto.getTitle();
+        this.content = postRequestDto.getContent();
+        this.user = user;
+    }
 }

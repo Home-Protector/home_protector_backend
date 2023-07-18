@@ -4,7 +4,6 @@ import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 public class PostRequestDto {

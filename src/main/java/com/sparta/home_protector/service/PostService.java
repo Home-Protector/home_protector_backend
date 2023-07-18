@@ -2,6 +2,7 @@ package com.sparta.home_protector.service;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.sparta.home_protector.dto.PostRequestDto;
@@ -75,34 +76,50 @@ public class PostService {
     }
 
     // 게시글 수정 비즈니스 로직
-//    @Transactional
-//    public ResponseEntity<String> updatePost(PostRequestDto postRequestDto, Long postId, Long tokenId) {
-//        // JWT Id로 해당 USER 객체 생성
-//        User user = userRepository.findById(tokenId)
-//                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-//
-//
-//        // 기존 게시글 Entity
-//        Post post = postRepository.findById(postId)
-//                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
-//
-//        // 클라이언트가 전송한 이미지 파일
-//        List<MultipartFile> files = postRequestDto.getImages();
-//
-//        // 파일 검증(null, 크기, 확장자)
-//        if (!validateFile(files)){
-//            throw new IllegalArgumentException("파일 검증에 실패했습니다.");
-//        }
-//
-//        // S3에 이미지 수정 후 수정된 이미지 파일의 url을 List<String>로 반환
-//        List<String> modiefiedUrl = updateFileToS3(files);
-//
-//    }
+    @Transactional
+    public ResponseEntity<String> updatePost(PostRequestDto postRequestDto, Long postId, Long tokenId) {
+        // JWT Id로 해당 USER 객체 생성
+        User user = userRepository.findById(tokenId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+
+        // 기존 게시글 Entity
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+
+        // 게시글 수정 권한 확인
+        if (!user.getUsername().equals(post.getUser().getUsername())){
+            throw new IllegalArgumentException("게시글을 수정할 권한이 없습니다!");
+        }
+
+        // 이미지 파일이 있을 경우만 S3 객체 수정 로직 수행
+        if (postRequestDto.getImages() != null && !postRequestDto.getImages().isEmpty()){
+            // 클라이언트가 전송한 이미지 파일
+            List<MultipartFile> files = postRequestDto.getImages();
+
+            // 파일 검증(null, 크기, 확장자)
+            if (!validateFile(files)){
+                throw new IllegalArgumentException("파일 검증에 실패했습니다.");
+            }
+
+            // 기존 Post에 저장되어 있던 이미지 파일의 UUID를 리스트로 반환
+            Set<String> originKeys = post.getImages().keySet();
+
+            // 기존 Post에 저장된 S3 이미지 객체를 모두 삭제 후 클라이언트가 보낸 새 파일 저장
+            Map<String, String> modiefiedUrl = updateFileToS3(originKeys, files);
+            post.update(postRequestDto, user, modiefiedUrl);
+        }
+
+        // Case : 이미지를 제외한 입력 데이터만 수정
+        post.update(postRequestDto, user);
+        return ResponseEntity.ok("게시글 수정 완료!");
+    }
 
     // 이미지 파일 업로드(S3) 메서드
     private Map<String, String> uploadFileToS3(List<MultipartFile> files) {
         Map<String, String> images = new LinkedHashMap<>();
 
+        // 새 S3 객체 업로드
         files.stream().forEachOrdered(file -> {
             String filename = file.getOriginalFilename(); // 파일의 원본명
             String extension = StringUtils.getFilenameExtension(Paths.get(filename).toString()); // 확장자명
@@ -126,29 +143,20 @@ public class PostService {
 
             // 해당 객체의 Url 값을 String으로 images리스트에 저장
             images.put(fileUuid, amazonS3.getUrl(bucket, fileUuid).toString());
-            //images.add(amazonS3.getUrl(bucket, fileUuid).toString());
         });
         return images;
     }
 
     // 이미지 파일 수정(S3) 메서드
-//    private List<String> updateFileToS3(List<MultipartFile> files){
-//        List<String> images = new ArrayList<>();
-//
-//        files.stream().forEachOrdered(file -> {
-//            String filename = file.getOriginalFilename(); // 파일의 원본명
-//            String extension = StringUtils.getFilenameExtension(Paths.get(filename).toString()); // 확장자명
-//            String fileUuid = generateUniqueFilename(extension); // 해당 파일의 고유한 이름
-//
-//            // 업로드할 파일의 메타데이터 생성(확장자 / 파일 크기.byte)
-//            ObjectMetadata metadata = new ObjectMetadata();
-//            metadata.setContentType("image/" + extension);
-//            metadata.setContentLength(file.getSize());
-//
-//            // 요청(수정) 객체 생성(원본 버킷명, 원본 파일명, 수정 버킷명, 메타정보)
-//
-//        });
-//    }
+    private Map<String, String> updateFileToS3(Set<String> originKeys, List<MultipartFile> files){
+        // 기존 저장해둔 S3 객체 삭제
+        for (String key : originKeys){
+            DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucket, key);
+            amazonS3.deleteObject(deleteObjectRequest);
+        }
+
+        return uploadFileToS3(files);
+    }
 
 
     // 업로드한 파일으로 고유 파일명을 생성해주는 메서드(이미지 파일 중복 문제)
