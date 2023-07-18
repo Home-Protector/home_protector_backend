@@ -6,9 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class ExceptionResponseDto {
     private String msg;
-    private boolean exist;
-    public ExceptionResponseDto(String message , boolean exist) {
+    public ExceptionResponseDto(String message ) {
         this.msg = message;
-        this.exist = exist;
     }
 }

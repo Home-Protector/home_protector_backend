@@ -11,26 +11,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // SignupException 처리
-    @ExceptionHandler({SignupException.class})
-    public ResponseEntity<ExceptionResponseDto> handleException(SignupException ex) {
+    // IllegalArgumentException 처리
+    @ExceptionHandler({IllegalArgumentException.class})
+    public ResponseEntity<ExceptionResponseDto> handleException(IllegalArgumentException ex) {
         ExceptionResponseDto restApiException = new ExceptionResponseDto(
-                ex.getMessage(),
-                true
-        );
-        return new ResponseEntity<>(
-                // HTTP body
-                restApiException,
-                // HTTP status code
-                HttpStatus.BAD_REQUEST
-        );
-    }
-    // SignupException 처리
-    @ExceptionHandler({LoginException.class})
-    public ResponseEntity<ExceptionResponseDto> handleException(LoginException ex) {
-        ExceptionResponseDto restApiException = new ExceptionResponseDto(
-                ex.getMessage(),
-                false
+                ex.getMessage()
         );
         return new ResponseEntity<>(
                 // HTTP body
@@ -43,8 +28,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public ResponseEntity<ExceptionResponseDto> handleException(MethodArgumentNotValidException ex) {
         ExceptionResponseDto restApiException = new ExceptionResponseDto(
-                ex.getFieldError().getDefaultMessage(),
-                false
+                ex.getFieldError().getDefaultMessage()
         );
         return new ResponseEntity<>(
                 // HTTP body
