@@ -6,6 +6,7 @@ import com.sparta.home_protector.entity.Post;
 import com.sparta.home_protector.entity.User;
 import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.repository.CommentRepository;
+import com.sparta.home_protector.repository.PostRepository;
 import com.sparta.home_protector.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class CommentService{
     private final CommentRepository commentRepositoy;
     private final UserRepository userRepository;
+    private final PostRepository postRepository;
     private final JwtUtil jwtUtil;
     private final PostService postService;
 
@@ -29,7 +31,8 @@ public class CommentService{
 
     public ResponseEntity<Map<String,String>> createComment(String tokenValue, Long postId, CommentRequestDto requestDto){
         // 해당 게시글이 DB에 존재하는지 확인
-        Post targetPost = postService.findPost(postId);
+        Post targetPost = postRepository.findById(postId).orElseThrow(() ->
+                new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
         User currentUser = checkTokenFindUser(tokenValue);
 
@@ -53,7 +56,7 @@ public class CommentService{
         User currentUser = checkTokenFindUser(tokenValue);
 
         // 권한 확인
-//      checkAuthority(comment, currentUser);
+      checkAuthority(comment, currentUser);
 
         // 수정
         comment.update(requestDto);
@@ -70,8 +73,8 @@ public class CommentService{
 
         User currentUser = checkTokenFindUser(tokenValue);
 
-        // 권한 확인
-//        checkAuthority(comment, currentUser);
+//         권한 확인
+        checkAuthority(comment, currentUser);
 
         // 삭제
         commentRepositoy.delete(comment);
@@ -109,13 +112,10 @@ public class CommentService{
 
     // 추후 관리자 권한 서비스 추가시 이용
     // 수정, 삭제시 권한을 확인
-//    public void checkAuthority(Comment comment, User user) {
-//        // admin 확인
-//        if(!user.getRole().getAuthority().equals("ROLE_ADMIN")){
-//            // 작성자 본인 확인
-//            if (!comment.getUser().getUsername().equals(user.getUsername())) {
-//                throw new IllegalArgumentException("작성자만 삭제/수정할 수 있습니다.");
-//            }
-//        }
-//    }
+    public void checkAuthority(Comment comment, User user) {
+        // 사용자 확인
+            if (comment.getUser().getId()!=user.getId()) {
+                throw new IllegalArgumentException("작성자만 삭제/수정할 수 있습니다.");
+            }
+    }
 }

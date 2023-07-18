@@ -31,10 +31,10 @@ public class PostController {
     @PostMapping("/post")
     public ResponseEntity<String> createPost(@RequestPart("title") String title,
                                              @RequestPart("content") String content,
-                                             @RequestPart("images") List<MultipartFile> files,
+//                                             @RequestPart("images") List<MultipartFile> files,
                                              HttpServletRequest httpServletRequest) {
 
-        PostRequestDto postRequestDto = new PostRequestDto(title, content, files);
+        PostRequestDto postRequestDto = new PostRequestDto(title, content);
 
         // JWT 조회 및 검증
         String token = jwtUtil.substringToken(httpServletRequest.getHeader("Authorization"));
@@ -60,7 +60,8 @@ public class PostController {
     public ResponseEntity<Map<String,String>> likeBoard(@PathVariable Long postId,
                                                         HttpServletRequest request) {
 
-        String token = jwtUtil.getTokenFromRequest(request);
+        String tokenValue = jwtUtil.getTokenFromRequest(request);
+        String token = jwtUtil.substringToken(tokenValue);
         // 요청한 사용자 확인(Id)
         Long userId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
 

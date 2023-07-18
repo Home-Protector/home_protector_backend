@@ -2,6 +2,7 @@ package com.sparta.home_protector.controller;
 
 import com.sparta.home_protector.dto.CommentRequestDto;
 import com.sparta.home_protector.service.CommentService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,9 @@ public class CommentController {
     @PostMapping()
     public ResponseEntity<Map<String,String>> createComment(@RequestHeader(name="Authorization") String tokenValue,
                                                             @PathVariable Long postid,
-                                                            @RequestBody @Valid CommentRequestDto requestDto,
-                                                            HttpServletRequest request) {
-        return commentService.createComment(tokenValue, postid,requestDto,request);
+                                                            @RequestBody @Valid CommentRequestDto requestDto
+                                                            ) {
+        return commentService.createComment(tokenValue, postid,requestDto);
     }
 
     // 댓글 수정 API

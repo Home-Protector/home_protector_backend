@@ -12,9 +12,9 @@ public class PostRequestDto {
     private String content;
     private List<MultipartFile> images;
 
-    public PostRequestDto(String title, String content, List<MultipartFile> files) {
+    public PostRequestDto(String title, String content) {
         this.title = title;
         this.content = content;
-        this.images = files;
+//        this.images = files;
     }
 }
