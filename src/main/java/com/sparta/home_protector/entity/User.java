@@ -28,8 +28,10 @@ public class User extends Timestamped {
     private List<Post> postList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private  List<Comment> commentList = new ArrayList<>();
+    private List<Comment> commentList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<PostLike> postLikes = new ArrayList<>();
     public User(String username, String nickname, String password) {
         this.username = username;
         this.nickname = nickname;

@@ -25,7 +25,7 @@ public class JwtUtil {
     private String secretKey;
 
     // jwt 생성 메서드
-    public String createToken(Long id , String nickname , String username){
+    public String createToken(Long id, String nickname, String username) {
         Date date = new Date(); // 현재 시간
 
         return BEARER_PREFIX +

@@ -1,6 +1,7 @@
 package com.sparta.home_protector.entity;
 
 
+import com.sparta.home_protector.dto.CommentRequestDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "comment") //  매핑할 테이블명
 @NoArgsConstructor
-public class Comment extends Timestamped{
+public class Comment extends Timestamped {
 
     @Id // 식별자
     @GeneratedValue(strategy = GenerationType.IDENTITY) // auto_increment 걸어주기
@@ -24,4 +25,14 @@ public class Comment extends Timestamped{
 
     @ManyToOne
     private Post post;
+
+    public Comment(CommentRequestDto requestDto, Post post, User user) {
+        this.comment = requestDto.getComment();
+        this.user = user;
+        this.post = post;
+    }
+
+    public void update(CommentRequestDto requestDto) {
+        this.comment = requestDto.getComment();
+    }
 }

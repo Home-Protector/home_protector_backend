@@ -44,11 +44,11 @@ public class UserService {
         User user = new User(username, nickname, password);
         userRepository.save(user);
 
-        return  new SignupResponseDto("회원가입 성공");
+        return new SignupResponseDto("회원가입 성공");
     }
 
-//    //로그인    security filter에서 하는 방법도 있는데 이게 더 맞는 방법.
-    public LoginResponseDto login(LoginRequestDto requestDto, HttpServletResponse jwtResponse) {
+    //    //로그인    security filter에서 하는 방법도 있는데 이게 더 맞는 방법.
+    public LoginResponseDto login(LoginRequestDto requestDto, HttpServletResponse httpServletResponse) {
         String username = requestDto.getUsername();
         String password = requestDto.getPassword();
 
@@ -57,14 +57,15 @@ public class UserService {
                 new IllegalArgumentException("회원을 찾을 수 없습니다."));
         // 비밀번호 확인
         if (!passwordEncoder.matches(password, user.getPassword())) {
-                throw new IllegalArgumentException("비밀번호가 틀립니다.");
+            throw new IllegalArgumentException("비밀번호가 틀립니다.");
         }
         Long id = user.getId();
         String nickname = user.getNickname();
         // Jwt 토큰 생성, response에 넣기
-        String token = jwtUtil.createToken(id,nickname,username);
+        String token = jwtUtil.createToken(id, nickname, username);
         // Jwt 헤더에 저장.
-        jwtResponse.addHeader("Authorization",token);
+        httpServletResponse.addHeader("Authorization", token);
+
         return new LoginResponseDto("로그인 성공");
     }
 }

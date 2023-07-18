@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class ExceptionResponseDto {
     private String msg;
-
     public ExceptionResponseDto(String message ) {
         this.msg = message;
     }
