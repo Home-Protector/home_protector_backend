@@ -81,4 +81,21 @@ public class PostController {
 
         return postService.updatePost(postRequestDto, postId, tokenId);
     }
+
+    // 게시글 삭제 API
+    @DeleteMapping("/post/{postId}")
+    public ResponseEntity<String> deletePost(@PathVariable Long postId, HttpServletRequest httpServletRequest){
+        // JWT 토큰 조회 및 가공
+        String token = jwtUtil.substringToken(httpServletRequest.getHeader("Authorization"));
+
+        // JWT 토큰 검증
+        if (!jwtUtil.validateToken(token)) {
+            throw new IllegalArgumentException("토큰 검증에 실패했습니다.");
+        }
+
+        // 요청한 사용자 정보(Id)
+        Long tokenId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
+
+        return postService.deletePost(postId, tokenId);
+    }
 }

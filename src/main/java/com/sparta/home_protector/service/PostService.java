@@ -1,7 +1,6 @@
 package com.sparta.home_protector.service;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -113,6 +112,23 @@ public class PostService {
         // Case : 이미지를 제외한 입력 데이터만 수정
         post.update(postRequestDto, user);
         return ResponseEntity.ok("게시글 수정 완료!");
+    }
+
+    // 게시글 삭제 비즈니스 로직
+    public ResponseEntity<String> deletePost(Long postId, Long tokenId) {
+        User user = userRepository.findById(tokenId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+
+        if (!user.getUsername().equals(post.getUser().getUsername())){
+            throw new IllegalArgumentException("게시글을 삭제할 권한이 없습니다!");
+        }
+
+        postRepository.delete(post);
+
+        return ResponseEntity.ok("게시글 삭제 완료!");
     }
 
     // 이미지 파일 업로드(S3) 메서드
