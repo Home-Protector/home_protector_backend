@@ -41,10 +41,13 @@ public class PostController {
         return postService.createPost(postRequestDto, userId);
     }
 
-    // 게시글 조회 API
+    // 게시글 조회 API (?sort=createdAt(최신순) || ?sort=viewCount(조회순) || sort = countLikes(좋아요순))
     @GetMapping("/post")
-    public List<PostResponseDto> getAllPost() {
-        return postService.getAllPost();
+    public List<PostResponseDto> getAllPost(@RequestParam(name = "sort", required = false) String sort) {
+        if (sort == null || sort.isEmpty()){
+            sort = "default";
+        }
+        return postService.getAllPost(sort);
     }
 
     // 게시글 상세 조회 API (조회수 로직 포함)
