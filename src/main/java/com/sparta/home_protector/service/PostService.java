@@ -48,12 +48,29 @@ public class PostService {
         this.jwtUtil = jwtUtil;
     }
 
+
     // 게시글 전체 조회 비즈니스 로직
-    public List<PostResponseDto> getAllPost() {
+    public List<PostResponseDto> getAllPost(String sort) {
         List<PostResponseDto> allPost = postRepository.findAll()
-                .stream().map(PostResponseDto::new).toList();
+                .stream()
+                .map(PostResponseDto::new)
+                .sorted(getSortedByQuery(sort))
+                .toList();
         return allPost;
     }
+
+    // ?sort = CountLikes(default:좋아요순) / createdAt(최신순) / viewCount(조회순)
+    private Comparator<PostResponseDto> getSortedByQuery(String sort){
+        switch (sort){
+            case "createdAt":
+                return Comparator.comparing(PostResponseDto::getCreatedAt).reversed();
+            case "viewCount":
+                return Comparator.comparing(PostResponseDto::getViewCount).reversed();
+            default:
+                return Comparator.comparing(PostResponseDto::getCountLikes).reversed();
+        }
+    }
+
 
     // 게시글 상세 조회 비즈니스 로직 (조회수 로직 포함)
     public PostResponseDto getPostDetail(Long postId, HttpServletRequest request, HttpServletResponse response) {
@@ -199,7 +216,7 @@ public class PostService {
     // 파일 검증 메서드(null check, 파일 확장자, 파일 크기)
     private boolean validateFile(List<MultipartFile> files) {
         // 지원하는 파일 확장자 리스트
-        List<String> fileExtensions = Arrays.asList("jpg", "png", "webp", "heif", "heic", "gif");
+        List<String> fileExtensions = Arrays.asList("jpg", "png", "webp", "heif", "heic", "gif", "jpeg");
 
         files.stream().forEachOrdered(file -> {
             // 파일 null check
