@@ -29,7 +29,7 @@ public class PostController {
     @PostMapping("/post")
     public ResponseEntity<String> createPost(@RequestPart("title") String title,
                                              @RequestPart("content") String content,
-                                             @RequestPart("images") List<MultipartFile> files,
+                                             @RequestPart(value = "images", required = false) List<MultipartFile> files,
                                              HttpServletRequest httpServletRequest) {
         // JWT 검증 및 요청한 UserId 반환
         Long tokenId = validateTokenAndGetUserId(httpServletRequest);
