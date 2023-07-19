@@ -9,9 +9,14 @@ import com.sparta.home_protector.dto.PostResponseDto;
 import com.sparta.home_protector.entity.Post;
 import com.sparta.home_protector.entity.PostLike;
 import com.sparta.home_protector.entity.User;
+import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.repository.PostLikeRepository;
 import com.sparta.home_protector.repository.PostRepository;
 import com.sparta.home_protector.repository.UserRepository;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -32,13 +37,15 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final AmazonS3 amazonS3;
     private final String bucket;
+    private final JwtUtil jwtUtil;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository, PostLikeRepository postLikeRepository, AmazonS3 amazonS3, String bucket) {
+    public PostService(PostRepository postRepository, UserRepository userRepository, PostLikeRepository postLikeRepository, AmazonS3 amazonS3, String bucket, JwtUtil jwtUtil) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.postLikeRepository = postLikeRepository;
         this.amazonS3 = amazonS3;
         this.bucket = bucket;
+        this.jwtUtil = jwtUtil;
     }
 
     // 게시글 전체 조회 비즈니스 로직
@@ -48,10 +55,11 @@ public class PostService {
         return allPost;
     }
 
-    // 게시글 상세 조회 비즈니스 로직
-    public PostResponseDto getPostDetail(Long postId) {
+    // 게시글 상세 조회 비즈니스 로직 (조회수 로직 포함)
+    public PostResponseDto getPostDetail(Long postId, HttpServletRequest request, HttpServletResponse response) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NullPointerException("존재하지 않는 게시글입니다."));
+        getViewCount(postId, request, response); // 조회수 처리 메서드
         return new PostResponseDto(post);
     }
 
@@ -239,5 +247,87 @@ public class PostService {
             postLikeRepository.delete(postLike);
             return ResponseEntity.ok("좋아요 취소");
         }
+    }
+
+    // 조회수 처리 메서드, 토큰을 이용해서 사용자마다 다른 쿠키가 생성되도록 해서 중복 방지 및 사용자 구분
+    // 게시글 조회수 비즈니스 로직
+    public void getViewCount(Long postId,
+                             HttpServletRequest request, HttpServletResponse response){
+
+        String tokenValue =  jwtUtil.getTokenFromRequest(request);
+
+        String token = "";
+
+        // 토큰 유무와 형태 확인, 정상이면 substring 후 검증 및 반환, 아니라면 비회원으로 간주하고 비회원용 쿠키 넣어주고 반환
+        if (StringUtils.hasText(tokenValue) && tokenValue.startsWith("Bearer ")) {
+            token = tokenValue.substring(7);
+
+            // 토큰 검증 실패시에도 비회원으로 간주 후 반환
+            if (!jwtUtil.validateToken(token)) {
+                nonMember(postId, request, response);
+                return;
+            }
+        }else { // 토큰이 null이거나 형태가 정상적이지 않은 경우
+            nonMember(postId, request, response);
+            return;
+        }
+
+        // 토큰에서 유저 id 가져와서 user 정보 조회
+        Claims info = jwtUtil.getUserInfo(token);
+
+        // 토큰에서 username 가져오기
+        String username = info.get("username",String.class);
+
+        // postId와 해당 사용자 username를 넣어준 cookieName 생성
+        String cookieName = "viewed_post_" + postId + "_" + username;
+
+        // request에서 쿠키 가져오기
+        Cookie[] cookies = request.getCookies();
+
+        // 쿠키가 존재하는 경우
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                // 쿠키 중 현재 유저의 해당 post 쿠키가 존재한다면 이미 조회한 것이므로 종료하고 반환
+                if (cookie.getName().equals(cookieName)) {
+                    return;
+                }
+            }
+        }
+
+        // 24시간 내로 해당 post를 조회한 적이 없는 유저인 경우 쿠키 생성
+        increaseViewCount(postId); // 조회수 증가
+        Cookie newCookie = new Cookie(cookieName, "true"); // 새 쿠키 생성
+        newCookie.setMaxAge(60 * 60 * 24); // 쿠키 유효시간 24시간
+        response.addCookie(newCookie); // response에 새 쿠키 추가
+    }
+
+    // 비회원용 토큰 생성 메서드
+    public void nonMember(Long postId, HttpServletRequest request, HttpServletResponse response){
+        // request에서 쿠키 가져오기
+        Cookie[] cookies = request.getCookies();
+
+        String cookieName = "viewed_post_" + postId + "_nonmember";
+
+        // 쿠키 중 비회원용 쿠키가 존재한다면 이미 조회한 것이므로 종료
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(cookieName)) {
+                    return;
+                }
+            }
+        }
+
+        // postId를 넣어준 비회원용 cookieName 생성하고 반환 및 종료
+        increaseViewCount(postId); // 조회수 증가
+        Cookie newCookie = new Cookie(cookieName, "true"); // 새 쿠키 생성
+        newCookie.setMaxAge(60 * 60 * 24); // 쿠키 유효시간 24시간
+        response.addCookie(newCookie); // response에 새 쿠키 추가
+    }
+
+    // 조회수 증가 메서드
+    public void increaseViewCount(Long id) {
+        Post post = postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+        post.setViewCount(post.getViewCount() + 1);
+        postRepository.save(post);
     }
 }
