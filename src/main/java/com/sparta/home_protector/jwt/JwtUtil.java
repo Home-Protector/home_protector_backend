@@ -3,23 +3,19 @@ package com.sparta.home_protector.jwt;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
 
-
+@Slf4j(topic = "JWT Util")
 @Component
 public class JwtUtil {
     public static final String AUTHORIZATION_HEADER = "Authorization";
     private final long TOKEN_TIME = 60 * 60 * 1000L; // 토큰 유효 시간
     public static final String BEARER_PREFIX = "Bearer ";
-
-    // 로그 설정
-    public static final Logger logger = LoggerFactory.getLogger("JWT 관련 로그");
 
     @Value("${jwt.secret.key}")
     private String secretKey;
@@ -53,13 +49,13 @@ public class JwtUtil {
             Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token); // key로 token 검증
             return true;
         } catch (SecurityException | MalformedJwtException | SignatureException e) {
-            logger.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
+            log.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
         } catch (ExpiredJwtException e) {
-            logger.error("Expired JWT token, 만료된 JWT token 입니다.");
+            log.error("Expired JWT token, 만료된 JWT token 입니다.");
         } catch (UnsupportedJwtException e) {
-            logger.error("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.");
+            log.error("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.");
         } catch (IllegalArgumentException e) {
-            logger.error("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
+            log.error("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
         }
         return false;
     }
@@ -70,10 +66,9 @@ public class JwtUtil {
                 .setSigningKey(secretKey)
                 .build().parseClaimsJws(token)
                 .getBody();
-        // Jwt의 구조중 Payload(Body)부분에 토큰에 담긴 정보가 들어있다.
-        // 정보의 한 조각을 클레임이라 부르고 key-value의 한 쌍으로 되어있음. 토큰에는 여러개의 클레임들을 넣을 수 있다.
     }
 
+    // Header의 Authorization key 값 가져오는 메서드
     public String getTokenFromRequest(HttpServletRequest req) {
         return req.getHeader(AUTHORIZATION_HEADER);
     }

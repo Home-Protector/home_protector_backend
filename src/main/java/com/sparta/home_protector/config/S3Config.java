@@ -34,7 +34,7 @@ public class S3Config {
     }
 
     @Bean
-    public String Bucket(){
+    public String Bucket() {
         return bucket;
     }
 }

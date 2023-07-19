@@ -1,5 +1,5 @@
 package com.sparta.home_protector.service;
-
+import java.nio.file.AccessDeniedException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -20,6 +20,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -50,15 +51,15 @@ public class PostService {
     // 게시글 상세 조회 비즈니스 로직
     public PostResponseDto getPostDetail(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 게시글입니다."));
         return new PostResponseDto(post);
     }
 
     //  게시글 작성 비즈니스 로직
-    public ResponseEntity<String> createPost(PostRequestDto postRequestDto, Long tokenId) {
+    public ResponseEntity<String> createPost(PostRequestDto postRequestDto, Long userId) {
         // JWT Id로 해당 USER 객체 생성
-        User user = userRepository.findById(tokenId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 회원입니다."));
 
         // 클라이언트가 전송한 이미지 파일
         List<MultipartFile> files = postRequestDto.getImages();
@@ -80,19 +81,19 @@ public class PostService {
 
     // 게시글 수정 비즈니스 로직
     @Transactional
-    public ResponseEntity<String> updatePost(PostRequestDto postRequestDto, Long postId, Long tokenId) {
+    public ResponseEntity<String> updatePost(PostRequestDto postRequestDto, Long postId, Long userId) throws AccessDeniedException {
         // JWT Id로 해당 USER 객체 생성
-        User user = userRepository.findById(tokenId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 회원입니다."));
 
 
         // 기존 게시글 Entity
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 게시글입니다."));
 
         // 게시글 수정 권한 확인
         if (!user.getUsername().equals(post.getUser().getUsername())) {
-            throw new IllegalArgumentException("게시글을 수정할 권한이 없습니다!");
+            throw new AccessDeniedException("게시글을 수정할 권한이 없습니다!");
         }
 
         // 이미지 파일이 있을 경우만 S3 객체 수정 로직 수행
@@ -119,15 +120,15 @@ public class PostService {
     }
 
     // 게시글 삭제 비즈니스 로직
-    public ResponseEntity<String> deletePost(Long postId, Long tokenId) {
-        User user = userRepository.findById(tokenId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+    public ResponseEntity<String> deletePost(Long postId, Long userId) throws AccessDeniedException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 회원입니다."));
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 게시글입니다."));
 
         if (!user.getUsername().equals(post.getUser().getUsername())) {
-            throw new IllegalArgumentException("게시글을 삭제할 권한이 없습니다!");
+            throw new AccessDeniedException("게시글을 삭제할 권한이 없습니다!");
         }
 
         postRepository.delete(post);
@@ -222,24 +223,21 @@ public class PostService {
         return true;
     }
 
-
-    Map<String, String> responseMessage = new HashMap<>();
+    // 게시글 좋아요 비즈니스 로직
     @Transactional
-    public ResponseEntity<Map<String,String>> likePost(Long postId, Long userId) {
+    public ResponseEntity<String> likePost(Long postId, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 회원입니다."));
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 게시글입니다."));
         PostLike postLike = postLikeRepository.findByPostAndUser(post, user).orElse(null);
-        if(postLike==null){
-            PostLike newPostLike = new PostLike(user,post);
+        if (postLike == null) {
+            PostLike newPostLike = new PostLike(user, post);
             postLikeRepository.save(newPostLike);
-            responseMessage.put("msg","좋아요 성공!");
-            return ResponseEntity.ok(responseMessage);
-        }else{
+            return ResponseEntity.ok("좋아요 성공");
+        } else {
             postLikeRepository.delete(postLike);
-            responseMessage.put("msg","좋아요 취소!");
-            return ResponseEntity.ok(responseMessage);
+            return ResponseEntity.ok("좋아요 취소");
         }
     }
 }

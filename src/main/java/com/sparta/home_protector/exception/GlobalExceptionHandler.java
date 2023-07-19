@@ -1,8 +1,8 @@
 package com.sparta.home_protector.exception;
 
-import com.sparta.home_protector.dto.ExceptionResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import java.nio.file.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -11,30 +11,29 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // IllegalArgumentException 처리
-    @ExceptionHandler({IllegalArgumentException.class})
-    public ResponseEntity<ExceptionResponseDto> handleException(IllegalArgumentException ex) {
-        ExceptionResponseDto restApiException = new ExceptionResponseDto(
-                ex.getMessage()
-        );
-        return new ResponseEntity<>(
-                // HTTP body
-                restApiException,
-                // HTTP status code
-                HttpStatus.BAD_REQUEST
-        );
+    // IllegalArgumentException 예외 처리
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleException(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
-    // MethodArgumentNotValidException (requestDto에서 valid 관련해서 생기는 예외) 처리
-    @ExceptionHandler({MethodArgumentNotValidException.class})
-    public ResponseEntity<ExceptionResponseDto> handleException(MethodArgumentNotValidException ex) {
-        ExceptionResponseDto restApiException = new ExceptionResponseDto(
-                ex.getFieldError().getDefaultMessage()
-        );
-        return new ResponseEntity<>(
-                // HTTP body
-                restApiException,
-                // HTTP status code
-                HttpStatus.BAD_REQUEST
-        );
+
+
+    // MethodArgumentNotValidException (회원가입 정규식 실패 시 Controller의 @Valid에서 예외 발생) 처리
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleException(MethodArgumentNotValidException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+
+    // NullPorinterException 예외 처리
+    @ExceptionHandler({NullPointerException.class})
+    public ResponseEntity<String> handleException(NullPointerException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+    }
+
+    // AccessDeniedException 예외 처리
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<String> handleException(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
+
 }
