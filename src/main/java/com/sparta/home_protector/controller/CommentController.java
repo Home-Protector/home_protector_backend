@@ -16,25 +16,25 @@ public class CommentController {
 
     // 댓글 작성 API
     @PostMapping()
-    public ResponseEntity<Map<String,String>> createComment(@RequestHeader(name="Authorization") String tokenValue,
-                                                            @PathVariable Long postid,
-                                                            @RequestBody @Valid CommentRequestDto requestDto
-                                                            ) {
-        return commentService.createComment(tokenValue, postid,requestDto);
+    public ResponseEntity<String> createComment(@RequestHeader(name = "Authorization") String tokenValue,
+                                                @PathVariable Long postid,
+                                                @RequestBody @Valid CommentRequestDto requestDto
+    ) {
+        return commentService.createComment(tokenValue, postid, requestDto);
     }
 
     // 댓글 수정 API
     @PutMapping("/{commentid}")
-    public ResponseEntity<Map<String,String>> updateComment(@RequestHeader(name="Authorization") String tokenValue,
-                                                            @PathVariable Long commentid,
-                                                            @RequestBody @Valid CommentRequestDto requestDto) {
+    public ResponseEntity<String> updateComment(@RequestHeader(name = "Authorization") String tokenValue,
+                                                @PathVariable Long commentid,
+                                                @RequestBody @Valid CommentRequestDto requestDto) {
         return commentService.updateComment(tokenValue, commentid, requestDto);
     }
 
     // 댓글 삭제 API
     @DeleteMapping("/{commentid}")
-    public ResponseEntity<Map<String,String>> deleteComment(@RequestHeader(name="Authorization") String tokenValue,
-                                                            @PathVariable Long commentid) {
+    public ResponseEntity<String> deleteComment(@RequestHeader(name = "Authorization") String tokenValue,
+                                                @PathVariable Long commentid) {
         return commentService.deleteComment(tokenValue, commentid);
     }
 }

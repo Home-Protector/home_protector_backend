@@ -1,6 +1,5 @@
 package com.sparta.home_protector.exception;
 
-import com.sparta.home_protector.dto.ExceptionResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import java.nio.file.AccessDeniedException;
@@ -24,4 +23,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleException(MethodArgumentNotValidException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+
+    // NullPorinterException 예외 처리
+    @ExceptionHandler({NullPointerException.class})
+    public ResponseEntity<String> handleException(NullPointerException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+    }
+
+    // AccessDeniedException 예외 처리
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<String> handleException(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
+
 }

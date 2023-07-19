@@ -67,10 +67,7 @@ public class CommentService {
 
         // 삭제
         commentRepositoy.delete(comment);
-
-        responseMessage.put("msg", "댓글 삭제 완료");
-
-        return ResponseEntity.ok(responseMessage);
+        return ResponseEntity.ok("댓글 삭제 완료");
     }
 
     // Comment 조회 메서드

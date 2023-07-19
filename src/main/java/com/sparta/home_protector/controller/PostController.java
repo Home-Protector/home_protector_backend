@@ -32,12 +32,12 @@ public class PostController {
                                              @RequestPart("images") List<MultipartFile> files,
                                              HttpServletRequest httpServletRequest) {
         // JWT 검증 및 요청한 UserId 반환
-        Long tokenId = validateTokenAndGetUserId(httpServletRequest);
+        Long userId = validateTokenAndGetUserId(httpServletRequest);
 
         // Request Dto 객체 생성
         PostRequestDto postRequestDto = new PostRequestDto(title, content, files);
 
-        return postService.createPost(postRequestDto, tokenId);
+        return postService.createPost(postRequestDto, userId);
     }
 
     // 게시글 조회 API
@@ -60,21 +60,21 @@ public class PostController {
                                              @RequestPart(value = "images", required = false) List<MultipartFile> files,
                                              HttpServletRequest httpServletRequest) throws AccessDeniedException {
         // JWT 검증 및 요청한 UserId 반환
-        Long tokenId = validateTokenAndGetUserId(httpServletRequest);
+        Long userId = validateTokenAndGetUserId(httpServletRequest);
 
         // Request Dto 생성
         PostRequestDto postRequestDto = new PostRequestDto(title, content, files);
 
-        return postService.updatePost(postRequestDto, postId, tokenId);
+        return postService.updatePost(postRequestDto, postId, userId);
     }
 
     // 게시글 삭제 API
     @DeleteMapping("/post/{postId}")
     public ResponseEntity<String> deletePost(@PathVariable Long postId, HttpServletRequest httpServletRequest) throws AccessDeniedException {
         // JWT 검증 및 요청한 UserId 반환
-        Long tokenId = validateTokenAndGetUserId(httpServletRequest);
+        Long userId = validateTokenAndGetUserId(httpServletRequest);
 
-        return postService.deletePost(postId, tokenId);
+        return postService.deletePost(postId, userId);
     }
 
     // 게시글 좋아요 API
@@ -83,9 +83,9 @@ public class PostController {
                                             HttpServletRequest httpServletRequest) {
 
         // JWT 검증 및 요청한 UserId 반환
-        Long tokenId = validateTokenAndGetUserId(httpServletRequest);
+        Long userId = validateTokenAndGetUserId(httpServletRequest);
 
-        return postService.likePost(postId, tokenId);
+        return postService.likePost(postId, userId);
     }
 
     //     JWT 검증 및 사용자 정보(UserId) 반환 메서드
@@ -99,8 +99,8 @@ public class PostController {
         }
 
         // 요청한 사용자 정보(Id)
-        Long tokenId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
+        Long userId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
 
-        return tokenId;
+        return userId;
     }
 }

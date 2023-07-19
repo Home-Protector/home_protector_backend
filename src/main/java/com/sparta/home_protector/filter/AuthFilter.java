@@ -25,7 +25,7 @@ public class AuthFilter implements Filter {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         String url = httpServletRequest.getRequestURI();
 
-        // 회원가입, 로그인 관련 API, post에서의 get 요청은 인증 필요없이 진행
+        // 회원가입, 로그인 관련 API, post에서의 get 요청 그리고 페이지 관련 path는 인증 필요없이 진행
         if (StringUtils.hasText(url) &&
                 (url.startsWith("/api/user") ||
                         (url.startsWith("/api/post") && ((HttpServletRequest) request).getMethod().equals("GET"))

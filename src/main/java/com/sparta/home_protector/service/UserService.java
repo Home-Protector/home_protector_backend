@@ -1,14 +1,14 @@
 package com.sparta.home_protector.service;
 
 import com.sparta.home_protector.dto.LoginRequestDto;
-import com.sparta.home_protector.dto.LoginResponseDto;
 import com.sparta.home_protector.dto.SignupRequestDto;
-import com.sparta.home_protector.dto.SignupResponseDto;
 import com.sparta.home_protector.entity.User;
 import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +23,7 @@ public class UserService {
     private final JwtUtil jwtUtil;
 
     //회원가입
-
-    public SignupResponseDto signup(SignupRequestDto requestDto ,HttpServletResponse response) {
+    public ResponseEntity<String> signup(SignupRequestDto requestDto, HttpServletResponse response) {
         String username = requestDto.getUsername();
         String nickname = requestDto.getNickname();
         String password = passwordEncoder.encode(requestDto.getPassword());
@@ -32,24 +31,25 @@ public class UserService {
         //회원 이름 중복 확인
         Optional<User> checkUsername = userRepository.findByUsername(username);
         if (checkUsername.isPresent()) {
-            response.addHeader("username-available","false");
-            return new SignupResponseDto("유저네임 중복" , false);
+            response.addHeader("username-available", "false");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 존재하는 username 입니다.");
         }
         // 닉네임 중복 확인
         Optional<User> checkNickname = userRepository.findByNickname(nickname);
         if (checkNickname.isPresent()) {
-            response.addHeader("username-available","true");
-            return new SignupResponseDto("유저네임 사용가능" ,false);
+            response.addHeader("nickname-available", "false");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 존재하는 nickname 입니다.");
         }
 
         // 사용자 등록
         User user = new User(username, nickname, password);
         userRepository.save(user);
 
-        return new SignupResponseDto("회원가입 성공" ,true);
+        return ResponseEntity.ok("회원가입 성공");
     }
-    //    //로그인    security filter에서 하는 방법도 있는데 이게 더 맞는 방법.
-    public LoginResponseDto login(LoginRequestDto requestDto, HttpServletResponse httpServletResponse) {
+
+    // 로그인
+    public ResponseEntity<String> login(LoginRequestDto requestDto, HttpServletResponse httpServletResponse) {
         String username = requestDto.getUsername();
         String password = requestDto.getPassword();
 
@@ -65,8 +65,8 @@ public class UserService {
         // Jwt 토큰 생성, response에 넣기
         String token = jwtUtil.createToken(id, nickname, username);
         // Jwt 헤더에 저장.
-        httpServletResponse.addHeader("Authorization", token);
+        httpServletResponse.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);
 
-        return new LoginResponseDto("로그인 성공");
+        return ResponseEntity.ok("로그인 성공");
     }
 }
