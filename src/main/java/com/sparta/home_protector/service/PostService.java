@@ -199,7 +199,7 @@ public class PostService {
     // 파일 검증 메서드(null check, 파일 확장자, 파일 크기)
     private boolean validateFile(List<MultipartFile> files) {
         // 지원하는 파일 확장자 리스트
-        List<String> fileExtensions = Arrays.asList("jpg", "png", "webp", "heif", "heic", "gif");
+        List<String> fileExtensions = Arrays.asList("jpg", "png", "webp", "heif", "heic", "gif", "jpeg");
 
         files.stream().forEachOrdered(file -> {
             // 파일 null check
