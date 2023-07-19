@@ -96,7 +96,7 @@ public class PostController {
     }
 
 
-    @PutMapping("/post/{postId}/like")
+    @PostMapping("/post/{postId}/like")
     public ResponseEntity<Map<String,String>> likeBoard(@PathVariable Long postId,
                                                         HttpServletRequest request) {
 

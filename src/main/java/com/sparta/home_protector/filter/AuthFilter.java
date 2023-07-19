@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.util.Enumeration;
 
 @Slf4j(topic = "AuthFilter")
 @Component
@@ -25,7 +26,7 @@ public class AuthFilter implements Filter {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         String url = httpServletRequest.getRequestURI();
 
-        // 회원가입, 로그인 관련 API, boards에서의 get 요청은 인증 필요없이 진행
+        // 회원가입, 로그인 관련 API, post에서의 get 요청은 인증 필요없이 진행
         if (StringUtils.hasText(url) &&
                 (url.startsWith("/api/user") ||
                         (url.startsWith("/api/post") && ((HttpServletRequest) request).getMethod().equals("GET"))
@@ -37,6 +38,13 @@ public class AuthFilter implements Filter {
         } else {
             // 나머지 API 요청은 인증 처리 진행
             // 토큰 확인
+            Enumeration em = httpServletRequest.getHeaderNames();
+            while(em.hasMoreElements()) {
+                String name = (String)em.nextElement();
+                String value = httpServletRequest.getHeader(name);
+                System.out.println("name = " + name);
+                System.out.println("value = " + value);
+            }
             String tokenValue = jwtUtil.getTokenFromRequest(httpServletRequest);
 
             if (StringUtils.hasText(tokenValue)) { // 토큰이 존재하면 검증 시작
