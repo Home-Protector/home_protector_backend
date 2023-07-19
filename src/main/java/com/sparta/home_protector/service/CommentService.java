@@ -40,7 +40,7 @@ public class CommentService {
     }
 
     @Transactional
-    public ResponseEntity<Map<String,String>> updateComment(String tokenValue, Long commentId, CommentRequestDto requestDto){
+    public ResponseEntity<String> updateComment(String tokenValue, Long commentId, CommentRequestDto requestDto) {
         // 댓글 저장유무 확인
         Comment comment = findComment(commentId);
 
@@ -53,7 +53,7 @@ public class CommentService {
         comment.update(requestDto);
 
         // Entity -> ResponseDto
-        return ResponseEntity.ok(responseMessage);
+        return ResponseEntity.ok("댓글 수정 완료");
     }
 
     public ResponseEntity<String> deleteComment(String tokenValue, Long commentId) {
@@ -73,7 +73,7 @@ public class CommentService {
     // Comment 조회 메서드
     private Comment findComment(Long id) {
         return commentRepositoy.findById(id).orElseThrow(() ->
-                new IllegalArgumentException("존재하지 않는 댓글 입니다.")
+                new NullPointerException("존재하지 않는 댓글 입니다.")
         );
     }
 
