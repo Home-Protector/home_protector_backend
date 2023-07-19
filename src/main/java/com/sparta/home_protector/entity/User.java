@@ -32,6 +32,7 @@ public class User extends Timestamped {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<PostLike> postLikes = new ArrayList<>();
+
     public User(String username, String nickname, String password) {
         this.username = username;
         this.nickname = nickname;

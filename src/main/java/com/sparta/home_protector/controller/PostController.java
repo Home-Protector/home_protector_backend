@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j(topic = "Post 컨트롤러")
 @RestController
@@ -29,7 +29,7 @@ public class PostController {
     @PostMapping("/post")
     public ResponseEntity<String> createPost(@RequestPart("title") String title,
                                              @RequestPart("content") String content,
-                                             @RequestPart(value = "images", required = false) List<MultipartFile> files,
+                                             @RequestPart("images") List<MultipartFile> files,
                                              HttpServletRequest httpServletRequest) {
         // JWT 검증 및 요청한 UserId 반환
         Long tokenId = validateTokenAndGetUserId(httpServletRequest);
@@ -58,7 +58,7 @@ public class PostController {
                                              @RequestPart("title") String title,
                                              @RequestPart("content") String content,
                                              @RequestPart(value = "images", required = false) List<MultipartFile> files,
-                                             HttpServletRequest httpServletRequest) {
+                                             HttpServletRequest httpServletRequest) throws AccessDeniedException {
         // JWT 검증 및 요청한 UserId 반환
         Long tokenId = validateTokenAndGetUserId(httpServletRequest);
 
@@ -70,7 +70,7 @@ public class PostController {
 
     // 게시글 삭제 API
     @DeleteMapping("/post/{postId}")
-    public ResponseEntity<String> deletePost(@PathVariable Long postId, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<String> deletePost(@PathVariable Long postId, HttpServletRequest httpServletRequest) throws AccessDeniedException {
         // JWT 검증 및 요청한 UserId 반환
         Long tokenId = validateTokenAndGetUserId(httpServletRequest);
 
@@ -78,9 +78,9 @@ public class PostController {
     }
 
     // 게시글 좋아요 API
-    @PutMapping("/post/{postId}/like")
-    public ResponseEntity<Map<String, String>> likeBoard(@PathVariable Long postId,
-                                                         HttpServletRequest httpServletRequest) {
+    @PostMapping("/post/{postId}/like")
+    public ResponseEntity<String> likeBoard(@PathVariable Long postId,
+                                            HttpServletRequest httpServletRequest) {
 
         // JWT 검증 및 요청한 UserId 반환
         Long tokenId = validateTokenAndGetUserId(httpServletRequest);
@@ -88,10 +88,10 @@ public class PostController {
         return postService.likePost(postId, tokenId);
     }
 
-    // JWT 검증 및 사용자 정보(UserId) 반환 메서드
+    //     JWT 검증 및 사용자 정보(UserId) 반환 메서드
     private Long validateTokenAndGetUserId(HttpServletRequest httpServletRequest) {
         // JWT 토큰 조회 및 가공
-        String token = jwtUtil.substringToken(httpServletRequest.getHeader("Authorization"));
+        String token = jwtUtil.substringToken(jwtUtil.getTokenFromRequest(httpServletRequest));
 
         // JWT 토큰 검증
         if (!jwtUtil.validateToken(token)) {

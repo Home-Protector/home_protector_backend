@@ -14,7 +14,7 @@ public class CommentResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public CommentResponseDto(Comment comment){
+    public CommentResponseDto(Comment comment) {
         this.comment_id = comment.getId();
         this.comment = comment.getComment();
         this.comment_nickname = comment.getUser().getNickname();

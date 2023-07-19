@@ -1,6 +1,5 @@
 package com.sparta.home_protector.dto;
 
-import com.sparta.home_protector.entity.Comment;
 import com.sparta.home_protector.entity.Post;
 import lombok.Getter;
 

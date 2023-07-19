@@ -14,25 +14,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Service
 @RequiredArgsConstructor
-public class CommentService{
+public class CommentService {
     private final CommentRepository commentRepositoy;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final JwtUtil jwtUtil;
-    private final PostService postService;
 
-    // 반환할 message 맵핑
-    Map<String, String> responseMessage = new HashMap<>();
-
-    public ResponseEntity<Map<String,String>> createComment(String tokenValue, Long postId, CommentRequestDto requestDto){
+    public ResponseEntity<String> createComment(String tokenValue, Long postId, CommentRequestDto requestDto) {
         // 해당 게시글이 DB에 존재하는지 확인
         Post targetPost = postRepository.findById(postId).orElseThrow(() ->
-                new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                new NullPointerException("게시글을 찾을 수 없습니다."));
 
         User currentUser = checkTokenFindUser(tokenValue);
 
@@ -42,10 +35,8 @@ public class CommentService{
         // DB 저장 넘겨주기
         Comment saveComment = commentRepositoy.save(comment);
 
-        responseMessage.put("msg", "댓글 등록 완료");
-
         // Entity -> ResponseDto
-        return ResponseEntity.ok(responseMessage);
+        return ResponseEntity.ok("댓글 등록 완료");
     }
 
     @Transactional
@@ -56,18 +47,16 @@ public class CommentService{
         User currentUser = checkTokenFindUser(tokenValue);
 
         // 권한 확인
-      checkAuthority(comment, currentUser);
+        checkAuthority(comment, currentUser);
 
         // 수정
         comment.update(requestDto);
-
-        responseMessage.put("msg", "댓글 수정 완료");
 
         // Entity -> ResponseDto
         return ResponseEntity.ok(responseMessage);
     }
 
-    public ResponseEntity<Map<String,String>> deleteComment(String tokenValue, Long commentId) {
+    public ResponseEntity<String> deleteComment(String tokenValue, Long commentId) {
         // 댓글 저장유무 확인
         Comment comment = findComment(commentId);
 
@@ -84,6 +73,7 @@ public class CommentService{
         return ResponseEntity.ok(responseMessage);
     }
 
+    // Comment 조회 메서드
     private Comment findComment(Long id) {
         return commentRepositoy.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("존재하지 않는 댓글 입니다.")
@@ -91,12 +81,12 @@ public class CommentService{
     }
 
     // 토큰 유효성 검증 후 유저 찾아서 반환
-    private User checkTokenFindUser(String tokenValue){
+    private User checkTokenFindUser(String tokenValue) {
         // 토큰 자르기
         String token = jwtUtil.substringToken(tokenValue);
 
         // 토큰 검증
-        if(!jwtUtil.validateToken(token)) {
+        if (!jwtUtil.validateToken(token)) {
             throw new IllegalArgumentException("Token Error");
         }
 
@@ -114,8 +104,8 @@ public class CommentService{
     // 수정, 삭제시 권한을 확인
     public void checkAuthority(Comment comment, User user) {
         // 사용자 확인
-            if (comment.getUser().getId()!=user.getId()) {
-                throw new IllegalArgumentException("작성자만 삭제/수정할 수 있습니다.");
-            }
+        if (comment.getUser().getId() != user.getId()) {
+            throw new IllegalArgumentException("작성자만 삭제/수정할 수 있습니다.");
+        }
     }
 }

@@ -3,7 +3,6 @@ package com.sparta.home_protector.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 @Entity
 @NoArgsConstructor
@@ -14,10 +13,10 @@ public class PostLike {
     @Column
     private Long id;
 
-    @ManyToOne( fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
-    @ManyToOne( fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Post post;
 
     public PostLike(User user, Post post) {
