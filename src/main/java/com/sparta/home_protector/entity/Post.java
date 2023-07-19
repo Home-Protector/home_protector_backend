@@ -4,6 +4,7 @@ import com.sparta.home_protector.dto.PostRequestDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ public class Post extends Timestamped {
     @Column(name = "images", nullable = false)
     private Map<String, String> images;  // 이미지 파일을 서버 또는 외부 스토리지(S3 Bucket)에 업로드하고, 경로를 db에 저장
 
+    @Setter
     @Column(name = "viewCount", nullable = false)
     private int viewCount;
 

@@ -2,7 +2,6 @@ package com.sparta.home_protector.controller;
 
 import com.sparta.home_protector.dto.CommentRequestDto;
 import com.sparta.home_protector.service.CommentService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

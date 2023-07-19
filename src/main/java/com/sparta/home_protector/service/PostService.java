@@ -9,9 +9,15 @@ import com.sparta.home_protector.dto.PostResponseDto;
 import com.sparta.home_protector.entity.Post;
 import com.sparta.home_protector.entity.PostLike;
 import com.sparta.home_protector.entity.User;
+import com.sparta.home_protector.jwt.JwtUtil;
 import com.sparta.home_protector.repository.PostLikeRepository;
 import com.sparta.home_protector.repository.PostRepository;
 import com.sparta.home_protector.repository.UserRepository;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -25,20 +31,14 @@ import java.util.*;
 
 @Slf4j(topic = "Post 서비스")
 @Service
+@RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final PostLikeRepository postLikeRepository;
     private final AmazonS3 amazonS3;
     private final String bucket;
-
-    public PostService(PostRepository postRepository, UserRepository userRepository, PostLikeRepository postLikeRepository, AmazonS3 amazonS3, String bucket) {
-        this.postRepository = postRepository;
-        this.userRepository = userRepository;
-        this.postLikeRepository = postLikeRepository;
-        this.amazonS3 = amazonS3;
-        this.bucket = bucket;
-    }
+    private final JwtUtil jwtUtil;
 
     // 게시글 전체 조회 비즈니스 로직
     public List<PostResponseDto> getAllPost() {
@@ -47,10 +47,11 @@ public class PostService {
         return allPost;
     }
 
-    // 게시글 상세 조회 비즈니스 로직
-    public PostResponseDto getPostDetail(Long postId) {
+    // 게시글 상세 조회 비즈니스 로직 (조회수 로직 포함)
+    public PostResponseDto getPostDetail(Long postId, HttpServletRequest request, HttpServletResponse response) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+        getViewCount(postId, request, response); // 조회수 처리 메서드
         return new PostResponseDto(post);
     }
 
@@ -241,5 +242,59 @@ public class PostService {
             responseMessage.put("msg","좋아요 취소!");
             return ResponseEntity.ok(responseMessage);
         }
+    }
+
+    // 조회수 처리 메서드, 토큰을 이용해서 사용자마다 다른 쿠키가 생성되도록 해서 중복 방지 및 사용자 구분
+    public void getViewCount(Long postId,
+                             HttpServletRequest request, HttpServletResponse response){
+        String tokenValue =  jwtUtil.getTokenFromRequest(request);
+        // 토큰 유무 확인
+        if(!StringUtils.hasText(tokenValue)){
+            return;
+        }
+        // 토큰 자르기
+        String token = jwtUtil.substringToken(tokenValue);
+        // 토큰 검증, 문제 있는 경우 반환하고 메서드 넘어감
+        if (!jwtUtil.validateToken(token)) {
+            return;
+        }
+        // 토큰에서 유저 id 가져와서 user 정보 조회
+        Claims info = jwtUtil.getUserInfo(token);
+        // 토큰에서 username 가져오기
+        String username = info.get("username",String.class);
+
+        // postId와 해당 사용자 username를 넣어준 cookieName 생성
+        String cookieName = "viewed_post_" + postId + username;
+
+        // request에서 쿠키 가져오기
+        Cookie[] cookies = request.getCookies();
+
+        // 조회 여부를 false로 선언
+        boolean isViewed = false;
+
+        // 쿠키가 존재하는 경우
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                // 받아온 쿠키가 cookieName과 같은 경우 이미 조회했으므로 종료하고 반환
+                if (cookie.getName().equals(cookieName)) {
+                    return;
+                }
+            }
+        }
+
+        // 조회하지 않은 경우
+        if (!isViewed) {
+            increaseViewCount(postId); // 조회수 증가
+            Cookie newCookie = new Cookie(cookieName, "true"); // 새 쿠키 생성
+            newCookie.setMaxAge(60 * 60 * 24); // 쿠키 유효시간 24시간
+            response.addCookie(newCookie); // response에 새 쿠키 추가
+        }
+    }
+
+    // 조회수 증가 메서드
+    public void increaseViewCount(Long id) {
+        Post post = postRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+        post.setViewCount(post.getViewCount() + 1);
+        postRepository.save(post);
     }
 }
