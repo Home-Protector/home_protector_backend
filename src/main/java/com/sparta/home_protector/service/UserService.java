@@ -23,7 +23,8 @@ public class UserService {
     private final JwtUtil jwtUtil;
 
     //회원가입
-    public SignupResponseDto signup(SignupRequestDto requestDto) {
+
+    public SignupResponseDto signup(SignupRequestDto requestDto ,HttpServletResponse response) {
         String username = requestDto.getUsername();
         String nickname = requestDto.getNickname();
         String password = passwordEncoder.encode(requestDto.getPassword());
@@ -31,21 +32,22 @@ public class UserService {
         //회원 이름 중복 확인
         Optional<User> checkUsername = userRepository.findByUsername(username);
         if (checkUsername.isPresent()) {
-            throw new IllegalArgumentException("중복된 username 입니다.");
+            response.addHeader("username-available","false");
+            return new SignupResponseDto("유저네임 중복" , false);
         }
         // 닉네임 중복 확인
         Optional<User> checkNickname = userRepository.findByNickname(nickname);
         if (checkNickname.isPresent()) {
-            throw new IllegalArgumentException("중복된 nickname 입니다.");
+            response.addHeader("username-available","true");
+            return new SignupResponseDto("유저네임 사용가능" ,false);
         }
 
         // 사용자 등록
         User user = new User(username, nickname, password);
         userRepository.save(user);
 
-        return new SignupResponseDto("회원가입 성공");
+        return new SignupResponseDto("회원가입 성공" ,true);
     }
-
     //    //로그인    security filter에서 하는 방법도 있는데 이게 더 맞는 방법.
     public LoginResponseDto login(LoginRequestDto requestDto, HttpServletResponse httpServletResponse) {
         String username = requestDto.getUsername();
