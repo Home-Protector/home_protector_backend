@@ -20,8 +20,9 @@ public class UserController {
 
     // 회원가입
     @PostMapping("/user/signup")
-    public ResponseEntity<SignupResponseDto> signup(@RequestBody @Valid SignupRequestDto requestDto) {
-        return ResponseEntity.ok(userService.signup(requestDto));
+    public ResponseEntity<SignupResponseDto> signup(@RequestBody @Valid SignupRequestDto requestDto,
+                                                    HttpServletResponse response) {
+        return ResponseEntity.ok(userService.signup(requestDto ,response));
     }
 
     // 로그인
