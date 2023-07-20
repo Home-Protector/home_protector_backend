@@ -1,11 +1,14 @@
 package com.sparta.home_protector.controller;
 
 import com.sparta.home_protector.dto.CommentRequestDto;
+import com.sparta.home_protector.dto.CommentResponseDto;
 import com.sparta.home_protector.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,5 +39,11 @@ public class CommentController {
     public ResponseEntity<String> deleteComment(@RequestHeader(name = "Authorization") String tokenValue,
                                                 @PathVariable Long commentid) {
         return commentService.deleteComment(tokenValue, commentid);
+    }
+
+    // 게시글에 있는 댓글 목록을 반환하는 API
+    @GetMapping()
+    public List<CommentResponseDto> getCommentList(@PathVariable Long postid) {
+        return commentService.getCommentList(postid);
     }
 }

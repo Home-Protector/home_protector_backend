@@ -1,6 +1,7 @@
 package com.sparta.home_protector.service;
 
 import com.sparta.home_protector.dto.CommentRequestDto;
+import com.sparta.home_protector.dto.CommentResponseDto;
 import com.sparta.home_protector.entity.Comment;
 import com.sparta.home_protector.entity.Post;
 import com.sparta.home_protector.entity.User;
@@ -13,6 +14,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -68,6 +74,24 @@ public class CommentService {
         // 삭제
         commentRepositoy.delete(comment);
         return ResponseEntity.ok("댓글 삭제 완료");
+    }
+
+    private static final Comparator<CommentResponseDto> COMMENT_COMPARATOR =
+            Comparator.comparing(CommentResponseDto::getUpdatedAt).reversed();
+
+    // 게시글에 있는 댓글 목록을 반환하는 API
+    public List<CommentResponseDto> getCommentList(Long postId) {
+        Optional<Post> postOptional = postRepository.findById(postId);
+
+        if (postOptional.isPresent()) {
+            Post post = postOptional.get();
+            return post.getCommentList().stream()
+                    .map(CommentResponseDto::new)
+                    .sorted(COMMENT_COMPARATOR)
+                    .toList();
+        } else {
+            return new ArrayList<>();
+        }
     }
 
     // Comment 조회 메서드
