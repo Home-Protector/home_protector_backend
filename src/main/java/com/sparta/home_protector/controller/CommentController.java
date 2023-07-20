@@ -46,10 +46,4 @@ public class CommentController {
                                                 @PathVariable Long commentid) {
         return commentService.deleteComment(tokenValue, commentid);
     }
-
-    // 게시글에 있는 댓글 목록을 반환하는 API
-    @GetMapping()
-    public List<CommentResponseDto> getCommentList(@PathVariable Long postid) {
-        return commentService.getCommentList(postid);
-    }
 }

@@ -1,5 +1,5 @@
 package com.sparta.home_protector.service;
-import java.nio.file.AccessDeniedException;
+
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -14,11 +14,9 @@ import com.sparta.home_protector.repository.PostLikeRepository;
 import com.sparta.home_protector.repository.PostRepository;
 import com.sparta.home_protector.repository.UserRepository;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -62,8 +60,8 @@ public class PostService {
     }
 
     // ?sort = CountLikes(default:좋아요순) / createdAt(최신순) / viewCount(조회순)
-    private Comparator<PostResponseDto> getSortedByQuery(String sort){
-        switch (sort){
+    private Comparator<PostResponseDto> getSortedByQuery(String sort) {
+        switch (sort) {
             case "createdAt":
                 return Comparator.comparing(PostResponseDto::getCreatedAt).reversed();
             case "viewCount":
@@ -293,9 +291,9 @@ public class PostService {
     // 조회수 처리 메서드, 토큰을 이용해서 사용자마다 다른 쿠키가 생성되도록 해서 중복 방지 및 사용자 구분
     // 게시글 조회수 비즈니스 로직
     public void getViewCount(Long postId,
-                             HttpServletRequest request, HttpServletResponse response){
+                             HttpServletRequest request, HttpServletResponse response) {
 
-        String tokenValue =  jwtUtil.getTokenFromRequest(request);
+        String tokenValue = jwtUtil.getTokenFromRequest(request);
 
         String token = "";
 
@@ -308,7 +306,7 @@ public class PostService {
                 nonMember(postId, request, response);
                 return;
             }
-        }else { // 토큰이 null이거나 형태가 정상적이지 않은 경우
+        } else { // 토큰이 null이거나 형태가 정상적이지 않은 경우
             nonMember(postId, request, response);
             return;
         }
@@ -317,7 +315,7 @@ public class PostService {
         Claims info = jwtUtil.getUserInfo(token);
 
         // 토큰에서 username 가져오기
-        String username = info.get("username",String.class);
+        String username = info.get("username", String.class);
 
         // postId와 해당 사용자 username를 넣어준 cookieName 생성
         String cookieName = "viewed_post_" + postId + "_" + username;
@@ -343,7 +341,7 @@ public class PostService {
     }
 
     // 비회원용 토큰 생성 메서드
-    public void nonMember(Long postId, HttpServletRequest request, HttpServletResponse response){
+    public void nonMember(Long postId, HttpServletRequest request, HttpServletResponse response) {
         // request에서 쿠키 가져오기
         Cookie[] cookies = request.getCookies();
 
