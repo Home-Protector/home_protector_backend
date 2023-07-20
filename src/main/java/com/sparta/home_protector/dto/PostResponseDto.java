@@ -21,6 +21,7 @@ public class PostResponseDto {
     private List<CommentResponseDto> commentList;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private boolean isLike;
 
     public PostResponseDto(Post post) {
         this.id = post.getId();
@@ -36,5 +37,22 @@ public class PostResponseDto {
                 .toList();
         this.createdAt = post.getCreatedAt();
         this.updatedAt = post.getUpdatedAt();
+    }
+
+    public PostResponseDto(Post post, boolean isLike) {
+        this.id = post.getId();
+        this.nickname = post.getUser().getNickname();
+        this.title = post.getTitle();
+        this.content = post.getContent();
+        this.images = new ArrayList<>(post.getImages().values());
+        this.viewCount = post.getViewCount();
+        this.countLikes = post.getPostLikeList().size();
+        this.commentList = post.getCommentList().stream()
+                .map(CommentResponseDto::new)
+                .sorted(Comparator.comparing(CommentResponseDto::getUpdatedAt).reversed())
+                .toList();
+        this.createdAt = post.getCreatedAt();
+        this.updatedAt = post.getUpdatedAt();
+        this.isLike = isLike;
     }
 }

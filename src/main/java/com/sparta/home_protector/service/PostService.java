@@ -83,7 +83,9 @@ public class PostService {
 
         getViewCount(postId, request, response); // 조회수 처리 메서드
 
-        if (tokenValue != null && !tokenValue.isEmpty()){
+        boolean isLike = false; // 특정 게시글 로그인 한 유저 좋아요 여부
+
+        if (tokenValue != null && !tokenValue.isEmpty()) {
             String token = jwtUtil.substringToken(tokenValue);
             jwtUtil.parseToken(token);
 
@@ -92,14 +94,14 @@ public class PostService {
 
             PostLike postLike = postLikeRepository.findByPostAndUser(post, user).orElse(null);
 
+            isLike = true;
+
             if (postLike == null) {
-                response.addHeader("isLike","false");
-            } else {
-                response.addHeader("isLike", "true");
+                isLike = false;
             }
         }
 
-        return new PostResponseDto(post);
+        return new PostResponseDto(post, isLike);
     }
 
     //  게시글 작성 비즈니스 로직
