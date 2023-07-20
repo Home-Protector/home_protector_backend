@@ -1,6 +1,7 @@
 package com.sparta.home_protector.service;
 
 import com.sparta.home_protector.dto.CommentRequestDto;
+import com.sparta.home_protector.dto.CommentResponseDto;
 import com.sparta.home_protector.entity.Comment;
 import com.sparta.home_protector.entity.Post;
 import com.sparta.home_protector.entity.User;
@@ -39,6 +40,21 @@ public class CommentService {
         return ResponseEntity.ok("댓글 등록 완료");
     }
 
+    // 게시글에 있는 댓글 목록을 반환하는 API
+    public List<CommentResponseDto> getCommentList(Long postid) {
+        Optional<Post> postOptional = postRepository.findById(postid);
+
+        if(postOptional.isPresent()){
+            Post post = postOptional.get();
+           return post.getCommentList().stream()
+                   .map(CommentResponseDto::new)
+                   .sorted(Comparator.comparing(CommentResponseDto::getUpdatedAt).reversed())
+                   .toList();
+        }else{
+            return new ArrayList<>();
+        }
+    }
+
     @Transactional
     public ResponseEntity<String> updateComment(String tokenValue, Long commentId, CommentRequestDto requestDto) {
         // 댓글 저장유무 확인
@@ -69,15 +85,15 @@ public class CommentService {
         commentRepositoy.delete(comment);
         return ResponseEntity.ok("댓글 삭제 완료");
     }
-
     // Comment 조회 메서드
+
     private Comment findComment(Long id) {
         return commentRepositoy.findById(id).orElseThrow(() ->
                 new NullPointerException("존재하지 않는 댓글 입니다.")
         );
     }
-
     // 토큰 유효성 검증 후 유저 찾아서 반환
+
     private User checkTokenFindUser(String tokenValue) {
         // 토큰 자르기
         String token = jwtUtil.substringToken(tokenValue);
@@ -96,9 +112,9 @@ public class CommentService {
 
         return user;
     }
-
     // 추후 관리자 권한 서비스 추가시 이용
     // 수정, 삭제시 권한을 확인
+
     public void checkAuthority(Comment comment, User user) {
         // 사용자 확인
         if (comment.getUser().getId() != user.getId()) {
