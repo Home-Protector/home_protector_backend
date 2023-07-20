@@ -60,6 +60,12 @@ public class JwtUtil {
         return false;
     }
 
+    // 게시글 상세 페이지에서 jwt 토큰 Parsing
+    public boolean parseToken(String token) {
+        Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token); // key로 token 검증
+        return true;
+    }
+
     // 토큰에서 사용자 정보 가져오기
     public Claims getUserInfo(String token) {
         return Jwts.parserBuilder()
