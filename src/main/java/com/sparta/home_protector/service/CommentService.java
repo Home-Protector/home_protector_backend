@@ -100,7 +100,6 @@ public class CommentService {
                 new NullPointerException("존재하지 않는 댓글 입니다.")
         );
     }
-
     // 토큰 유효성 검증 후 유저 찾아서 반환
     private User checkTokenFindUser(String tokenValue) {
         // 토큰 자르기
@@ -120,7 +119,6 @@ public class CommentService {
 
         return user;
     }
-
     // 추후 관리자 권한 서비스 추가시 이용
     // 수정, 삭제시 권한을 확인
     public void checkAuthority(Comment comment, User user) {

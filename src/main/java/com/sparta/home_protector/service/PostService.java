@@ -14,9 +14,11 @@ import com.sparta.home_protector.repository.PostLikeRepository;
 import com.sparta.home_protector.repository.PostRepository;
 import com.sparta.home_protector.repository.UserRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -48,19 +50,58 @@ public class PostService {
         this.jwtUtil = jwtUtil;
     }
 
+
     // 게시글 전체 조회 비즈니스 로직
-    public List<PostResponseDto> getAllPost() {
+    public List<PostResponseDto> getAllPost(String sort) {
         List<PostResponseDto> allPost = postRepository.findAll()
-                .stream().map(PostResponseDto::new).toList();
+                .stream()
+                .map(PostResponseDto::new)
+                .sorted(getSortedByQuery(sort))
+                .toList();
         return allPost;
     }
 
+    // ?sort = CountLikes(default:좋아요순) / createdAt(최신순) / viewCount(조회순)
+    private Comparator<PostResponseDto> getSortedByQuery(String sort){
+        switch (sort){
+            case "createdAt":
+                return Comparator.comparing(PostResponseDto::getCreatedAt).reversed();
+            case "viewCount":
+                return Comparator.comparing(PostResponseDto::getViewCount).reversed();
+            default:
+                return Comparator.comparing(PostResponseDto::getCountLikes).reversed();
+        }
+    }
+
+
     // 게시글 상세 조회 비즈니스 로직 (조회수 로직 포함)
     public PostResponseDto getPostDetail(Long postId, HttpServletRequest request, HttpServletResponse response) {
+        String tokenValue = jwtUtil.getTokenFromRequest(request);
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NullPointerException("존재하지 않는 게시글입니다."));
+
         getViewCount(postId, request, response); // 조회수 처리 메서드
-        return new PostResponseDto(post);
+
+        boolean isLike = false; // 특정 게시글 로그인 한 유저 좋아요 여부
+
+        if (tokenValue != null && !tokenValue.isEmpty()) {
+            String token = jwtUtil.substringToken(tokenValue);
+            jwtUtil.parseToken(token);
+
+            Long userId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
+            User user = userRepository.findById(userId).orElse(null);
+
+            PostLike postLike = postLikeRepository.findByPostAndUser(post, user).orElse(null);
+
+            isLike = true;
+
+            if (postLike == null) {
+                isLike = false;
+            }
+        }
+
+        return new PostResponseDto(post, isLike);
     }
 
     //  게시글 작성 비즈니스 로직
@@ -199,7 +240,7 @@ public class PostService {
     // 파일 검증 메서드(null check, 파일 확장자, 파일 크기)
     private boolean validateFile(List<MultipartFile> files) {
         // 지원하는 파일 확장자 리스트
-        List<String> fileExtensions = Arrays.asList("jpg", "png", "webp", "heif", "heic", "gif");
+        List<String> fileExtensions = Arrays.asList("jpg", "png", "webp", "heif", "heic", "gif", "jpeg");
 
         files.stream().forEachOrdered(file -> {
             // 파일 null check

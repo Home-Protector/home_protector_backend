@@ -26,6 +26,12 @@ public class CommentController {
         return commentService.createComment(tokenValue, postid, requestDto);
     }
 
+    // 게시글에 있는 댓글 목록을 반환하는 API
+    @GetMapping()
+    public List<CommentResponseDto> getCommentList(@PathVariable Long postid) {
+        return commentService.getCommentList(postid);
+    }
+
     // 댓글 수정 API
     @PutMapping("/{commentid}")
     public ResponseEntity<String> updateComment(@RequestHeader(name = "Authorization") String tokenValue,
