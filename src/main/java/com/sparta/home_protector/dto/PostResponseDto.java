@@ -1,6 +1,7 @@
 package com.sparta.home_protector.dto;
 
 import com.sparta.home_protector.entity.Post;
+import com.sparta.home_protector.entity.User;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

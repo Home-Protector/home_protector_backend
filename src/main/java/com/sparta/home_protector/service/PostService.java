@@ -14,9 +14,11 @@ import com.sparta.home_protector.repository.PostLikeRepository;
 import com.sparta.home_protector.repository.PostRepository;
 import com.sparta.home_protector.repository.UserRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -74,9 +76,29 @@ public class PostService {
 
     // 게시글 상세 조회 비즈니스 로직 (조회수 로직 포함)
     public PostResponseDto getPostDetail(Long postId, HttpServletRequest request, HttpServletResponse response) {
+        String tokenValue = jwtUtil.getTokenFromRequest(request);
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new NullPointerException("존재하지 않는 게시글입니다."));
+
         getViewCount(postId, request, response); // 조회수 처리 메서드
+
+        if (tokenValue != null && !tokenValue.isEmpty()){
+            String token = jwtUtil.substringToken(tokenValue);
+            jwtUtil.parseToken(token);
+
+            Long userId = Long.parseLong(jwtUtil.getUserInfo(token).getSubject());
+            User user = userRepository.findById(userId).orElse(null);
+
+            PostLike postLike = postLikeRepository.findByPostAndUser(post, user).orElse(null);
+
+            if (postLike == null) {
+                response.addHeader("isLike","false");
+            } else {
+                response.addHeader("isLike", "true");
+            }
+        }
+
         return new PostResponseDto(post);
     }
 
